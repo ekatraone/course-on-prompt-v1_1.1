@@ -370,9 +370,9 @@ async function create_record(record_array, course_name) {
     });
 
     let config = {
-        method: 'post',
+        method: 'POST',
         maxBodyLength: Infinity,
-        url: `https://api.airtable.com/v0/${process.env.course_base}/` + course_name,
+        url: `https://api.airtable.com/v0/${process.env.course_base}/${course_name}` ,
         headers: {
             'Authorization': `Bearer ${process.env.personal_access_token}`,
             'Content-Type': 'application/json',

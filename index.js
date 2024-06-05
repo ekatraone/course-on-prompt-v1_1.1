@@ -199,7 +199,7 @@ async function generate_course(senderID, course_name, goal, style, language) {
             console.log("index : 199      ");
 
             if (course_details != "iterate_through_module error") {
-                let populate_field_status = await populate_fields(3, course_details, course_name, senderID).then().catch(e => console.error("populate_field_status error " + e));
+                let populate_field_status = await populate_fields(3, course_details, course_name, senderID , table_id).then().catch(e => console.error("populate_field_status error " + e));
 
                 if (populate_field_status == 200) {
                     console.log("Populate Field Status", populate_field_status)
@@ -216,17 +216,19 @@ async function generate_course(senderID, course_name, goal, style, language) {
     }
 }
 
-async function populate_fields(module_number, module_details, course_name, senderID) {
+async function populate_fields(module_number, module_details, course_name, senderID, table_id) {
     console.log("3.1 Module Details", typeof (module_details))
 
     // module_details = module_details.rep("'", '"')
     if (module_details != undefined) {
 
 
-        console.log("3.2 Module Details", module_details)
+        // console.log("3.2 Module Details", module_details)
         day_count = 1
         module_dict = []
         module_fields_arr = []
+
+        // console.log("module_details - ", module_details);
 
         for (const key in module_details) {
 
@@ -257,12 +259,13 @@ async function populate_fields(module_number, module_details, course_name, sende
 
 
             }
+            console.log("module_dict - ", module_dict)
 
         }
 
 
-
-        let create_status = await airtable.create_record(module_dict, course_name).then().catch(e => console.error("Error creating Day field " + e));
+        console.log("course_name - ",course_name );
+        let create_status = await airtable.create_record(module_dict, table_id).then().catch(e => console.error("Error creating Day field " + e));
 
         return create_status
     }
