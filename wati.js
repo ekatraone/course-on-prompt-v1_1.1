@@ -99,25 +99,36 @@ const sendInteractiveButtonsMessage = async (hTxt, bTxt, btnTxt, senderID) => {
 }
 
 const sendText = async (msg, senderID) => {
-
     var options = {
-        'method': 'POST',
-        'url': 'https://' + process.env.URL + '/api/v1/sendSessionMessage/' + senderID,
-        'headers': {
+        method: 'POST',
+        url: `https://${process.env.URL}/api/v1/sendSessionMessage/${senderID}`,
+        headers: {
             'Authorization': process.env.API,
-
         },
-        formData: {
+        form: {
             "messageText": msg,
-        }
+        },
     };
-    request(options, function (error, response) {
-        body = JSON.parse(response.body)
-        result = body.result
-        //console.log(typeof result)
-        if (error) { console.log(error) }
+
+    return new Promise((resolve, reject) => {
+        request(options, (error, response, body) => {
+            if (error) {
+                console.error("Error sending text:", error);
+                return reject(error);
+            }
+
+            try {
+                const parsedBody = JSON.parse(body);
+                const result = parsedBody.result;
+                resolve(result);
+            } catch (parseError) {
+                console.error("Error parsing response body:", parseError);
+                reject(parseError);
+            }
+        });
     });
 }
+
 
 const sendListInteractive = async (data, body, btnText, senderID) => {
     var options = {
@@ -164,27 +175,39 @@ const sendListInteractive = async (data, body, btnText, senderID) => {
  * @param {*} body 
  * @param {*} senderID 
  */
-const sendDynamicInteractiveMsg = async (data, body, senderID) => {
 
-    var options = {
-        'method': 'POST',
-        'url': 'https://' + process.env.URL + '/api/v1/sendInteractiveButtonsMessage?whatsappNumber=' + senderID,
-        'headers': {
+const sendDynamicInteractiveMsg = async (data, body, senderID) => {
+    const options = {
+        method: 'POST',
+        url: `https://${process.env.URL}/api/v1/sendInteractiveButtonsMessage?whatsappNumber=${senderID}`,
+        headers: {
             'Authorization': process.env.API,
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
             "body": body,
             "buttons": data
-        })
-
+        }),
     };
-    request(options, function (error, response) {
-        if (error) throw new Error(error);
-        console.log(response.body);
-    });
 
-}
+    return new Promise((resolve, reject) => {
+        request(options, (error, response) => {
+            if (error) {
+                console.error("Error sending interactive message:", error);
+                return reject(error);
+            }
+
+            try {
+                const parsedBody = JSON.parse(response.body);
+                console.log(parsedBody);
+                resolve(parsedBody);
+            } catch (parseError) {
+                console.error("Error parsing response body:", parseError);
+                reject(parseError);
+            }
+        });
+    });
+};
 
 async function sendTemplateMessage(day, course_name, template_name, senderID) {
     params = [{ 'name': "day", "value": day }, { 'name': "course_name", "value": course_name }]
