@@ -971,7 +971,7 @@ async function findModule(currentDay, module_No, number) {
     ).then().catch(e => console.log(e));
     records.forEach(async function (record) {
         let id = await us.getID(number).then().catch(e => console.log(e))
-        console.log("test:974  record - ", record)
+        console.log("test:974  record - ",record)
         let day = record.get("Day")
         let module_text = record.get("Module " + module_No + " Text")
         let module_title = record.get("Module " + module_No + " LTitle")
@@ -1229,7 +1229,7 @@ async function findModule(currentDay, module_No, number) {
                 // });
 
                 let index = 0;
-                console.log("1. module_split")
+                console.log("test: 1232 - 1. module_split")
                 await sendSplitMessages(module_split, index, day, module_No, number)
 
 
@@ -1384,59 +1384,45 @@ async function findModule(currentDay, module_No, number) {
 
     // }
 }
-async function sendSplitMessages(module_split, index, day, module_No, number) {
+
+async function sendSplitMessages(module_split, startIndex, day, module_No, number) {
     const awaitTimeout = delay => new Promise(resolve => setTimeout(resolve, delay));
-    console.log("test:1389 - module_split --", module_split)
-    for (index; index < module_split.length; index++) {
+
+    console.log("test:1391 - module_split --", module_split, "\n", "module_len - ", module_split.length);
+
+    for (let i = startIndex; i < module_split.length; i++) {
         try {
-            console.log("test: 1392 - 4. module split ", index)
-            if (index == 0) {
-                // console.log('Waiting time 0')
-                // if (module_split[index].includes("Image")) {
-                //     console.log("4.1 Delay of sendMediaFile Split")
+            console.log("test: 1392 - 4. module split ", i);
+            
+            if (i == 0) {
+                // Send the first message without delay
+                await WA.sendText(module_split[i], number);
+            } else {
+                if (module_split[i].includes("Image")) {
+                    console.log("4.2 Delay of sendMediaFile Split");
 
-                //     let image_index = module_split[index].split(" ")
-                //     console.log("Image Index ", Number(image_index[1]))
+                    let image_index = module_split[i].split(" ");
+                    console.log("Image Index ", Number(image_index[1]));
 
-                //     await awaitTimeout(0)
-                //     sendContent.sendMediaFile_v2(Number(image_index[1]), day, module_No, number)
+                    await awaitTimeout(200);
+                    await sendContent.sendMediaFile_v2(Number(image_index[1]), day, module_No, number);
+                } else if (module_split[i].includes("Next Step")) {
+                    console.log("Next step interactive", i);
 
-                // }
-                // else {
-                // await awaitTimeout(0)
-                WA.sendText(module_split[index], number).then().catch(e => console.log("Error sending text ", e))
-                // }
-            }
-            else {
-                if (module_split[index].includes("Image")) {
-                    console.log("4.2 Delay of sendMediaFile Split")
-
-                    let image_index = module_split[index].split(" ")
-                    console.log("Image Index ", Number(image_index[1]))
-
-                    await awaitTimeout(200)
-                    sendContent.sendMediaFile_v2(Number(image_index[1]), day, module_No, number)
-
-                }
-                else if (module_split[index].includes("Next Step")) {
-                    console.log("Next step interactive", index)
-
-                    await awaitTimeout(400)
-                    WA.sendDynamicInteractiveMsg([{ text: "Next Step" }], "Let's go to the next step. We're ready when you are.", number)
-
-                }
-                else {
-                    await awaitTimeout(800)
-                    WA.sendText(module_split[index], number).then().catch(e => console.log("Error sending text ", e))
+                    await awaitTimeout(400);
+                    await WA.sendDynamicInteractiveMsg([{ text: "Next Step" }], "Let's go to the next step. We're ready when you are.", number);
+                } else {
+                    await awaitTimeout(800);
+                    await WA.sendText(module_split[i], number);
                 }
             }
 
         } catch (e) {
-            console.log("Error sending text ", e)
+            console.log("Error sending text ", e);
         }
-    };
-
+    }
 }
+
 
 //Find Module No in students table and send it
 async function sendModuleContent(number) {

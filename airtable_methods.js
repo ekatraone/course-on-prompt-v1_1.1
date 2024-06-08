@@ -39,7 +39,7 @@ async function updateField(id, field_name, updatedValue) {
 
 async function getID(number) {
 
-    console.log("airtable_methods: 42  ")
+    console.log("airtable_methods: 42 -get ID  ")
     return new Promise(async function (resolve, reject) {
         const course_table = await base_student('Student').select({
             filterByFormula: "({Phone} = " + number + ")",
@@ -240,7 +240,7 @@ const find_ContentField = async (field, currentDay, current_module, number) => {
 }
 
 const findField = async (field, number) => {
-    console.log("airtable_methods- 243")
+    console.log("airtable_methods- 243 - find field")
     var course_tn = await findTable(number)
     const records = await base_student("Student").select({
         filterByFormula: "({Phone} =" + number + ")",
