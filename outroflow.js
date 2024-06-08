@@ -11,61 +11,51 @@ let course_base = new Airtable({ apiKey: process.env.airtable_api }).base(proces
 
 
 async function outro_flow(cDay, number) {
+    try {
+        let course_tn = await us.findTable(number);
+        let id = await us.getID(number);
 
-    let course_tn = await us.findTable(number).then().catch(e => console.log(e))
+        const records = await course_base(course_tn).select({
+            filterByFormula: "({Day} = " + cDay + ")",
+            view: "Grid view",
+        }).all();
 
-    let id = await us.getID(number).then().catch(e => console.log(e))
+        for (const record of records) {
+            console.log(course_tn);
 
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} = " + cDay + ")",
-        view: "Grid view",
+            // Define the outro messages
+            let day_topic = `Thank you for taking ${course_tn}! We hope you learnt some new things with us.`;
+            let text = `You have successfully demonstrated your ability to understand and learn about ${course_tn}.\n\nCongratulations!`;
+            let int_title = `Would you like to receive a certificate confirming the completion of your course?`;
+            let int_btn = `Yes!\nNo, I'll pass`;
 
-    }).all();
+            console.log("Updating last message of outro_flow");
+            await us.updateField(id, "Last_Msg", day_topic);
 
-    records.forEach(async function (record) {
-        console.log(course_tn);
+            // Send initial message
+            await WA.sendText(day_topic, number);
 
-        // let day_topic = record.get('Day Topic');
-        // let text = record.get('Module 1 Text');
-        // let int_title = record.get('Module 1 iBody')
-        // let int_btn = record.get('Module 1 iButtons')
+            // Send follow-up message after a delay
+            setTimeout(async () => {
+                await WA.sendText(text, number);
+            }, 1000);
 
-        let day_topic = `Thank you for taking ${course_tn}! We hope you learnt some new things with us.`
-        let text = `You have successfully demonstrated your ability to understand and learn about ${course_tn}.
+            // Prepare interactive message options
+            let options = int_btn.split("\n").filter(n => n);
+            let data = options.map(row => ({ text: row }));
 
-Congratulations!`
-
-        let int_title = `Would you like to receive a certificate confirming the completion of your course?`
-        let int_btn = `Yes!\nNo, I'll pass`
-        console.log("Updating last message of outroflow")
-        us.updateField(id, "Last_Msg", day_topic)
-
-        // console.log(int_title, text, day_topic)
-        WA.sendText(day_topic, number)
-
-        setTimeout(async () => {
-            WA.sendText(text, number)
-        }, 1000)
-
-        let options = int_btn.split("\n").filter(n => n)
-        // console.log(options)
-
-        let data = []
-        for (const row of options) {
-            data.push({
-                text: row
-            })
+            // Send interactive message after a short delay
+            setTimeout(async () => {
+                console.log("Updating last message of outro_flow");
+                await us.updateField(id, "Last_Msg", int_title);
+                await WA.sendDynamicInteractiveMsg(data, int_title, number);
+            }, 1100); // Slightly longer delay to ensure sequence
         }
-
-        setTimeout(() => {
-            console.log("2. Updating last message of outroflow")
-            us.updateField(id, "Last_Msg", int_title)
-
-            WA.sendDynamicInteractiveMsg(data, int_title, number)
-
-        }, 100)
-    })
+    } catch (e) {
+        console.error("Error in outro_flow:", e);
+    }
 }
+
 
 
 
