@@ -1426,56 +1426,41 @@ async function sendSplitMessages(module_split, startIndex, day, module_No, numbe
 
 //Find Module No in students table and send it
 async function sendModuleContent(number) {
-    // let course_tn = await us.findTable(number)
+    try {
+        const records_Student = await base('Student').select({
+            filterByFormula: "({Phone} =" + number + ")",
+            maxRecords: 1,
+            view: "Grid view",
+        }).all();
 
-    // filterByFormula: "({Phone} =" + number + ")",
-    const records_Student = await base('Student').select({
-        filterByFormula: "({Phone} =" + number + ")",
-        maxRecords: 1,
-        view: "Grid view",
+        for (const record of records_Student) {
+            let cDay = record.get("Next Day");
+            let next_module = record.get("Next Module");
+            let completed_module = record.get("Module Completed");
 
-    }).all();
-
-    records_Student.forEach(async function (record) {
-
-
-        // console.log("rescords = ", records_Student)
-        let cDay = record.get("Next Day")
-        let next_module = record.get("Next Module")
-        let completed_module = record.get("Module Completed")
-
-        if (next_module != undefined) {
-
-            if (cDay == 13) {
-                console.log("Executing outro sendModuleContent ")
-                await outro.outro_flow(cDay, number) //phone number
-            }
-
-            else if (next_module == Number(0)) {
-
-                console.log(next_module == Number(0))
-                console.log("Next module 0 ", next_module)
-                findDay(cDay, number);
-
-            }
-            else {
-                if (completed_module === 0 && next_module === 1) {
-                    console.log(`test:1477 - Starting Day ${cDay} of ${number}`)
-                    await sendStartDayTopic(next_module, cDay, number)
-
-                }
-                else {
-
-                    console.log("Next module No ", next_module)
-                    findModule(cDay, next_module, number)
+            if (next_module !== undefined) {
+                if (cDay == 13) {
+                    console.log("Executing outro sendModuleContent");
+                    await outro.outro_flow(cDay, number); // phone number
+                } else if (next_module === 0) {
+                    console.log("test:1446 - Next module 0", next_module);
+                    await findDay(cDay, number);
+                } else {
+                    if (completed_module === 0 && next_module === 1) {
+                        console.log(`test:1450 - Starting Day ${cDay} for number ${number}`);
+                        await sendStartDayTopic(next_module, cDay, number);
+                    } else {
+                        console.log("Next module No", next_module);
+                        await findModule(cDay, next_module, number);
+                    }
                 }
             }
         }
-
-    })
-
-
+    } catch (error) {
+        console.error("Error in sendModuleContent:", error);
+    }
 }
+
 
 async function sendStartDayTopic(next_module, cDay, number) {
     let course_tn = await us.findTable(number)
@@ -1528,7 +1513,7 @@ async function markModuleComplete(number) {
         let name = record.get("Name")
 
         let next_module = current_module + 1 // 1+1 = 1
-        console.log("1. Entered markModuleComplete ", next_module, current_module)
+        console.log("test: 1531 - 1. Entered markModuleComplete ", next_module, current_module)
 
         if (next_module >= 9) {
             console.log("1. Entered Update", next_module)
