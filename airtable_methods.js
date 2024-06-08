@@ -20,18 +20,19 @@ async function updateField(id, field_name, updatedValue) {
     try {
         const records = await base_student('Student').update([
             {
-                "id": id,
-                "fields": {
+                id,
+                fields: {
                     [field_name]: updatedValue
                 }
             }
         ]);
         return records;
-    } catch (err) {
-        console.error("Error updating field:", err);
-        throw err; 
+    } catch (error) {
+        console.error("Error updating field:", error);
+        throw error;
     }
 }
+
 
 
 async function getID(number) {
@@ -183,613 +184,506 @@ const findQuestion = async (currentDay, module_no, number) => {
     })
 }
 
-const findLastMsg = async (number) => {
-
-    var course_tn = await findTable(number)
-    const records = await base_student("Student").select({
-        filterByFormula: "({Phone} =" + number + ")",
+async function findLastMsg(number) {
+    try {
+      const course_tn = await findTable(number);
+      const records = await base_student("Student").select({
+        filterByFormula: `({Phone} = ${number})`,
         view: "Grid view",
-
-    }).all(
-    ); console.log("airtable_methods: 197 - course_tn --",  course_tn)
-    return new Promise((resolve, reject) => {
-        records.forEach(function (record) {
-            let body = record.get('Last_Msg');
-            // let buttons = record.get('Module ' + module_no + ' iButtons');
-            if (body != undefined) {
-                console.log("Last msg of " + number, body)
-                resolve(body)
-                // reject("error")
-            }
-            else {
-                console.log("Last msg of " + number, body)
-                resolve(undefined)
-            }
-        })
-    })
+      }).all();
+  
+      return new Promise((resolve, reject) => {
+        records.forEach((record) => {
+          const body = record.get("Last_Msg");
+          if (body !== undefined) {
+            console.log("Last msg of " + number, body);
+            resolve(body);
+          } else {
+            console.log("Last msg of " + number, body);
+            resolve(undefined);
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Error finding last message:", error);
+      return error.response.data;
+    }
 }
+  
 
-const find_ContentField = async (field, currentDay, current_module, number) => {
-
-    var course_tn = await findTable(number)
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + currentDay + ")",
-        view: "Grid view",
-
-    }).all(
-    );
-    return new Promise((resolve, reject) => {
-        records.forEach(function (record) {
-            let body = record.get(`Module ${current_module} ${field}`);
-
-            if (body !== undefined) {
-                // console.log("Feedback  " + number, body)
-                feedback_options = [body]
-                resolve(feedback_options[0].split("\n"))
-                // reject("error")
-            }
-            else {
-                console.log("Feedback  0")
-                resolve(0)
-            }
-        })
-    })
+async function find_ContentField(field, currentDay, current_module, number) {
+    try {
+      const course_tn = await findTable(number);
+      const records = await course_base(course_tn).select({
+        filterByFormula: `({Day} = ${currentDay})`,
+        view: 'Grid view',
+      }).all();
+  
+      return new Promise((resolve, reject) => {
+        records.forEach((record) => {
+          const body = record.get(`Module ${current_module} ${field}`);
+          if (body !== undefined) {
+            const feedback_options = [body];
+            resolve(feedback_options[0].split('\n'));
+          } else {
+            console.log('Feedback 0');
+            resolve(0);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error finding content field:', error);
+      return error.response.data;
+    }
 }
-
-const findField = async (field, number) => {
-    console.log("airtable_methods- 243 - find field")
-    var course_tn = await findTable(number)
-    const records = await base_student("Student").select({
-        filterByFormula: "({Phone} =" + number + ")",
-        view: "Grid view",
-
-    }).all(
-    );
-    return new Promise((resolve, reject) => {
-        records.forEach(function (record) {
-            let body = record.get(field);
-            // console.log("Last msg of " + number, body)
-
-            // let buttons = record.get('Module ' + module_no + ' iButtons');
-            if (body !== undefined) {
-                // console.log("Last msg of " + number, body)
-                resolve(body)
-                // reject("error")
-            }
-            else {
-                resolve(0)
-            }
-        })
-    })
+  
+async function findField(field, number) {
+    try {
+      console.log('airtable_methods- 243 - find field');
+      const course_tn = await findTable(number);
+      const records = await base_student('Student').select({
+        filterByFormula: `({Phone} = ${number})`,
+        view: 'Grid view',
+      }).all();
+  
+      return new Promise((resolve, reject) => {
+        records.forEach((record) => {
+          const body = record.get(field);
+          if (body !== undefined) {
+            resolve(body);
+          } else {
+            resolve(0);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error finding field:', error);
+      return error.response.data;
+    }
 }
+  
 
-const findAns = async (currentDay, module_no, number) => {
-
-    var course_tn = await findTable(number)
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + currentDay + ")",
-        view: "Grid view",
-
-    }).all(
-    );
-    return new Promise((resolve, reject) => {
-        records.forEach(function (record) {
-            let body = record.get('Module ' + module_no + ' Ans');
-            // let buttons = record.get('Module ' + module_no + ' iButtons');
-            if (body !== undefined) {
-                resolve(body)
-                reject("error")
-            }
-        })
-    })
+async function findAns(currentDay, module_no, number) {
+    try {
+      const course_tn = await findTable(number);
+      const records = await course_base(course_tn).select({
+        filterByFormula: `({Day} = ${currentDay})`,
+        view: 'Grid view',
+      }).all();
+  
+      return new Promise((resolve, reject) => {
+        records.forEach((record) => {
+          const body = record.get(`Module ${module_no} Ans`);
+          if (body !== undefined) {
+            resolve(body);
+            reject("error");
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error finding answer:', error);
+      return error.response.data;
+    }
 }
+  
 //--------------------------------------------------------
 
 
-
 async function createTable(course_name, course_fields) {
-    let data = JSON.stringify({
-        "description": course_name + "Course generated by COP",
-        "fields": course_fields,
-        "name": course_name
-    });
-
-    // console.log("data ", data)
-    let config = {
+    try {
+      const data = JSON.stringify({
+        description: `${course_name} Course generated by COP`,
+        fields: course_fields,
+        name: course_name,
+      });
+  
+      const config = {
         method: 'POST',
-
         url: `https://api.airtable.com/v0/meta/bases/${process.env.course_base}/tables`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          Authorization: `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
-        data: data
-    };
-
-    table_id = axios.request(config)
-        .then((response) => {
-            console.log(JSON.stringify(response.data.id));
-            console.log(typeof (response.data.id))
-            return response.data.id
-        })
-        .catch((error) => {
-            console.log("1. error ", error.response.data);
-            if (error.response.data.error.type == "DUPLICATE_OR_EMPTY_FIELD_NAME") {
-                console.log("DUPLICATE_OR_EMPTY_FIELD_NAME ", error.response.data.error)
-                console.log(typeof (error.response.data))
-
-            }
-            else {
-                console.log("2. error ", error.response.data);
-                console.log(typeof (error.response.data))
-
-            }
-            return error.response.data
-        });
-    return table_id
+        data: data,
+      };
+  
+      const response = await axios.request(config);
+      // console.log("Table Created:", response.data);
+      return response.data.id;
+    } catch (error) {
+      console.error('Error creating table:', error);
+      if (error.response.data.error.type === 'DUPLICATE_OR_EMPTY_FIELD_NAME') {
+        console.log('DUPLICATE_OR_EMPTY_FIELD_NAME', error.response.data.error);
+      } else {
+        console.log('Error:', error.response.data);
+      }
+      return error.response.data;
+    }
 }
+  
+
 
 async function updateCourseTable(course_name, new_table_name) {
-    let data = JSON.stringify({
-        "name": new_table_name
-    });
-
-    // console.log("data ", data)
-    let config = {
-        method: 'patch',
-
+    try {
+      const data = JSON.stringify({
+        name: new_table_name,
+      });
+  
+      const config = {
+        method: 'PATCH',
         url: `https://api.airtable.com/v0/meta/bases/${process.env.course_base}/tables/${course_name}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          Authorization: `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
-        data: data
-    };
-
-    table_id = axios.request(config)
-        .then((response) => {
-            // console.log(JSON.stringify(response.data.id));
-            // console.log(typeof (response.data.id))
-            return response.status
-        })
-        .catch((error) => {
-            console.log("1. update table error ", error.response.data);
-
-            return error.response.data
-        });
-    return table_id
+        data: data,
+      };
+  
+      const response = await axios.request(config);
+      // console.log("Table Updated:", response.data);
+      return response.status;
+    } catch (error) {
+      console.error('Error updating table:', error);
+      return error.response.data;
+    }
 }
+  
+
 
 async function create_record(record_array, course_name) {
-    let data = JSON.stringify({
-        "records": record_array
-    });
-
-    let config = {
+    try {
+      const data = JSON.stringify({
+        records: record_array,
+      });
+  
+      const config = {
         method: 'POST',
         maxBodyLength: Infinity,
-        url: `https://api.airtable.com/v0/${process.env.course_base}/${course_name}` ,
+        url: `https://api.airtable.com/v0/${process.env.course_base}/${course_name}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          Authorization: `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
-        data: data
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-            console.log(response.data);
-            return response.status
-
-        })
-        .catch((error) => {
-            console.log(error.response.data);
-            return error.response.data
-        });
-    return result
-
+        data: data,
+      };
+  
+      const response = await axios.request(config);
+      // console.log("Course Record Created:", response.data);
+      return response.status;
+    } catch (error) {
+      console.error('Error creating course record:', error);
+      return error.response.data;
+    }
 }
+  
 
 async function create_student_record(senderID, name, topic) {
-    let data = JSON.stringify({
-        "records": [{
-            fields: {
-                'Phone': senderID,
-                'Name': name,
-                'Topic': topic,
-                'Module Completed': 0,
-                'Next Module': 1,
-                'Day Completed': 0,
-                'Next Day': 1,
-                'Progress': 'In Progress'
-            }
-        }
-        ]
-    });
-
-    let config = {
-        method: 'post',
+    try {
+      const data = JSON.stringify({
+        records: [{
+          fields: {
+            Phone: senderID,
+            Name: name,
+            Topic: topic,
+            'Module Completed': 0,
+            'Next Module': 1,
+            'Day Completed': 0,
+            'Next Day': 1,
+            Progress: 'In Progress',
+          },
+        }],
+      });
+  
+      const config = {
+        method: 'POST',
         url: `https://api.airtable.com/v0/${process.env.student_base}/${process.env.student_table}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          Authorization: `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
-        data: data
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-            console.log(response.data);
-            return response.status
-
-        })
-        .catch((error) => {
-            console.log(error.response.data);
-            return error.response.data
-        });
-    return result
-
+        data: data,
+      };
+  
+      const response = await axios.request(config);
+      // console.log("Student Record Created:", response.data);
+      return response.status;
+    } catch (error) {
+      console.error('Error creating student record:', error);
+      return error.response.data;
+    }
 }
+  
+
 
 async function update_student_record(id) {
-    let data = JSON.stringify({
-        "records": [{
-            fields: {
-                'Module Completed': 0,
-                'Next Module': 1,
-                'Day Completed': 0,
-                'Next Day': 1,
-                'Progress': 'In Progress'
-            }
-        }
-        ]
-    });
-
-    let config = {
-        method: 'patch',
+    try {
+      const data = JSON.stringify({
+        records: [{
+          fields: {
+            'Module Completed': 0,
+            'Next Module': 1,
+            'Day Completed': 0,
+            'Next Day': 1,
+            Progress: 'In Progress',
+          },
+        }],
+      });
+  
+      const config = {
+        method: 'PATCH',
         url: `https://api.airtable.com/v0/${process.env.student_base}/${process.env.student_table}/${id}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          Authorization: `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
-        data: data
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-            console.log("Updated Student", response.data);
-            return response.status
-
-        })
-        .catch((error) => {
-            console.log("Student Update Error", error.response.data);
-            return error.response.data
-        });
-    return result
-
+        data: data,
+      };
+  
+      const response = await axios.request(config);
+      // console.log("Student Record Updated:", response.data);
+      return response.status;
+    } catch (error) {
+      console.error('Error updating student record:', error);
+      return error.response.data;
+    }
 }
-async function create_course_record(senderID, name) {
-    let data = JSON.stringify({
-        "records": [{
-            fields: {
-                'Phone': senderID,
-                'Name': name,
-                'Topic': "",
-                'Course Status': "Pending Approval",
-                'Progress': "In Progress",
-            }
-        }
-        ]
-    });
+  
 
-    let config = {
-        method: 'post',
+
+async function create_course_record(senderID, name) {
+    try {
+      const data = JSON.stringify({
+        records: [{
+          fields: {
+            Phone: senderID,
+            Name: name,
+            Topic: "",
+            "Course Status": "Pending Approval",
+            Progress: "In Progress",
+          },
+        }],
+      });
+  
+      const config = {
+        method: 'POST',
         url: `https://api.airtable.com/v0/${process.env.alfred_base}/${process.env.alfred_table}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          Authorization: `Bearer ${process.env.personal_access_token}`,
+          "Content-Type": "application/json",
         },
-        data: data
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-            console.log(response.data);
-            return response.status
-
-        })
-        .catch((error) => {
-            console.log(error.response.data);
-            return error.response.data
-        });
-    return result
-
+        data: data,
+      };
+  
+      const response = await axios.request(config);
+      // console.log("Course Record Created:", response.data);
+      return response.status;
+    } catch (error) {
+      console.error("Error creating course record:", error);
+      return error.response.data;
+    }
 }
+  
 
 async function find_student_record(senderID) {
-
-
-
-    let config = {
+    try {
+      const config = {
         method: 'GET',
         url: `https://api.airtable.com/v0/${process.env.student_base}/Student?fields%5B%5D=Phone&filterByFormula=Phone%3D${senderID}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          'Authorization': `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
+      };
+  
+      const response = await axios.request(config);
+      const records = response.data.records;
+      console.log(records);
+      return records;
+    } catch (error) {
+      console.error('Error:', error);
+      return error.response.data;
+    }
+  }
+  
 
-
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-
-            res = response.data
-            console.log(res);
-            return response.data.records
-
-        })
-        .catch((error) => {
-            console.log(error);
-            return error.response.data
-        });
-    return result
-
-}
-
-async function find_alfred_course_record(senderID) {
-
-
-
-    let config = {
+  async function find_alfred_course_record(senderID) {
+    try {
+      const config = {
         method: 'GET',
         url: `https://api.airtable.com/v0/${process.env.alfred_base}/${process.env.alfred_table}?fields%5B%5D=Phone&fields%5B%5D=Last_Msg&filterByFormula=Phone%3D${senderID}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          'Authorization': `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
+      };
+  
+      const response = await axios.request(config);
+      const records = response.data.records;
+      // console.log("Alfred Record ", records);
+      return records;
+    } catch (error) {
+      console.error('Alfred Record Error:', error);
+      return error.response.data;
+    }
+  }
+  
 
-
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-
-            res = response.data
-            // console.log("Alfred  Record ", res.records);
-            return response.data.records
-
-        })
-        .catch((error) => {
-            console.log("Alfred  Record Error", error);
-            return error.response.data
-        });
-    return result
-
-}
-
-async function existingStudents(senderID) {
-    let config = {
+  async function existingStudents(senderID) {
+    try {
+      const config = {
         method: 'GET',
         url: `https://api.airtable.com/v0/${process.env.alfred_waitlist_base}/tblAq61H84ablbDlW?fields%5B%5D=Phone&fields%5B%5D=Topic`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          'Authorization': `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
-
-
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-
-            res = response.data
-            // console.log("Existing Records ", res.records);
-            return response.data.records
-
-        })
-        .catch((error) => {
-            console.log(error);
-            return error.response.data
-        });
-    return result
-
+      };
+  
+      const response = await axios.request(config);
+      const records = response.data.records;
+      // console.log("Existing Records:", records);
+      return records;
+    } catch (error) {
+      console.error('Error fetching existing student records:', error);
+      return error.response.data;
+    }
 }
+  
 
 async function existingStudents_internal(senderID) {
-    let config = {
+    try {
+      const config = {
         method: 'GET',
         url: `https://api.airtable.com/v0/${process.env.internal_course_base}/Student?fields%5B%5D=Phone&fields%5B%5D=Course&fields%5B%5D=Last_Msg&filterByFormula=Phone%3D${senderID}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          'Authorization': `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
-
-
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-
-            res = response.data
-            // console.log("Existing Records ", res.records);
-            return response.data.records
-
-        })
-        .catch((error) => {
-            console.log(error);
-            return error.response.data
-        });
-    return result
-
+      };
+  
+      const response = await axios.request(config);
+      const records = response.data.records;
+      // console.log("Existing Records:", records);
+      return records;
+    } catch (error) {
+      console.error('Error fetching existing student records:', error);
+      return error.response.data;
+    }
 }
+  
+
 async function update_internal_student_record(student_id, last_msg) {
-    let data = JSON.stringify(
-        {
-            fields: {
-
-                'Last_Msg': last_msg,
-                'Source': "COP"
-
-            }
-        }
-
-    );
-
-    let config = {
+    try {
+      const data = JSON.stringify({
+        fields: {
+          'Last_Msg': last_msg,
+          'Source': 'COP',
+        },
+      });
+  
+      const config = {
         method: 'PATCH',
         url: `https://api.airtable.com/v0/${process.env.internal_course_base}/Student/${student_id}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          'Authorization': `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
-        data: data
-
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-
-            res = response.data.records
-            // console.log(res.length);
-            return response.status
-
-        })
-        .catch((error) => {
-            console.log("1. ", error.response.data);
-            return error.response.data
-        });
-    return result
-
+        data: data,
+      };
+  
+      const response = await axios.request(config);
+      // console.log("Internal Student Record Updated:", response.data);
+      return response.status;
+    } catch (error) {
+      console.error('Error updating internal student record:', error);
+      return error.response.data;
+    }
 }
+  
+
 
 async function update_student_record(student_id, course_name) {
-    let data = JSON.stringify(
-        {
-            fields: {
-
-                'Topic': course_name,
-                'Module Completed': 0,
-                'Next Module': 1,
-                'Day Completed': 0,
-                'Next Day': 1
-
-            }
-        }
-
-    );
-
-    let config = {
+    try {
+      const data = JSON.stringify({
+        fields: {
+          'Topic': course_name,
+          'Module Completed': 0,
+          'Next Module': 1,
+          'Day Completed': 0,
+          'Next Day': 1,
+        },
+      });
+  
+      const config = {
         method: 'PATCH',
         url: `https://api.airtable.com/v0/${process.env.student_base}/${process.env.student_table}/${student_id}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          'Authorization': `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
-        data: data
-
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-
-            res = response.data.records
-            // console.log(res.length);
-            return response.status
-
-        })
-        .catch((error) => {
-            console.log(error.response.data);
-            return error.response.data
-        });
-    return result
-
+        data: data,
+      };
+  
+      const response = await axios.request(config);
+      // console.log("Student Record Updated:", response.data);
+      return response.status;
+    } catch (error) {
+      console.error('Error updating student record:', error);
+      return error.response.data;
+    }
 }
+  
+
 
 async function updateAlfredData(course_id, field_name, field_value) {
-    let data = JSON.stringify(
-        {
-            fields: {
+    try {
+        const data = JSON.stringify({
+        fields: {
+            [field_name]: field_value,
+        },
+        });
 
-                [field_name]: field_value,
-
-            }
-        }
-
-    );
-
-    let config = {
+        const config = {
         method: 'PATCH',
         url: `https://api.airtable.com/v0/${process.env.alfred_base}/${process.env.alfred_table}/${course_id}`,
         headers: {
             'Authorization': `Bearer ${process.env.personal_access_token}`,
             'Content-Type': 'application/json',
-
         },
-        data: data
+        data: data,
+        };
 
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-
-            res = response.data.records
-            // console.log(res.length);
-            return response.status
-
-        })
-        .catch((error) => {
-            console.log(error.response.data);
-            return error.response.data
-        });
-    return result
-
+        const response = await axios.request(config);
+        // console.log("Alfred Record Updated:", response.data);
+        return response.status;
+    } catch (error) {
+        console.error('Error updating Alfred data:', error);
+        return error.response.data;
+    }
 }
+  
 
 async function ListCourseFields(course_name) {
-
-
-    let config = {
+    try {
+      const config = {
         method: 'GET',
-
         url: `https://api.airtable.com/v0/${process.env.course_base}/${course_name}`,
         headers: {
-            'Authorization': `Bearer ${process.env.personal_access_token}`,
-            'Content-Type': 'application/json',
-
+          'Authorization': `Bearer ${process.env.personal_access_token}`,
+          'Content-Type': 'application/json',
         },
-
-
-    };
-
-    result = axios.request(config)
-        .then((response) => {
-
-            res = response.data.records
-
-            console.log(res);
-            return response.data
-
-        })
-        .catch((error) => {
-            console.log("List record ", error.response.data);
-            return error.response.data
-        });
-    return result
-
-}
+      };
+  
+      const response = await axios.request(config);
+      const records = response.data.records;
+      console.log(records);
+      return response.data;
+    } catch (error) {
+      console.error('List record error:', error);
+      return error.response.data;
+    }
+  }
+  
 
 module.exports = {
     createTable, create_record, create_student_record, find_student_record, update_student_record, findTable,
