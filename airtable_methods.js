@@ -17,23 +17,20 @@ let alfred_base = new Airtable({ apiKey: process.env.airtable_api }).base(proces
 // console.log(base)
 
 async function updateField(id, field_name, updatedValue) {
-
-    base_student('Student').update([
-
-        {
-            "id": id,
-            "fields": {
-                [field_name]: updatedValue
+    try {
+        const records = await base_student('Student').update([
+            {
+                "id": id,
+                "fields": {
+                    [field_name]: updatedValue
+                }
             }
-        }
-    ], function (err, records) {
-        if (err) {
-            // throw new Error(err)
-            console.log(err);
-            // return;
-        }
-
-    });
+        ]);
+        return records;
+    } catch (err) {
+        console.error("Error updating field:", err);
+        throw err; 
+    }
 }
 
 
