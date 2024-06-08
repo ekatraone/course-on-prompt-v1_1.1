@@ -134,7 +134,7 @@ async function generate_course(senderID, course_name, goal, style, language) {
 
     let table_id = await create_table_fields(course_name, 3).then().catch(e => console.error("generate course error " + e));
 
-    console.log("Index:150           ","Table ID", table_id)
+    console.log("Index:150 -  ","Table ID", table_id)
 
 
     if (table_id['error']?.['type'] === 'DUPLICATE_TABLE_NAME') {

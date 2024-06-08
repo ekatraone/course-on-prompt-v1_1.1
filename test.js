@@ -158,99 +158,67 @@ https://bit.ly/Financial_Literacy_Referral`, number)
 }
 
 async function sendList(currentDay, module_No, number) {
-    let course_tn = await us.findTable(number)
-    let id = await us.getID(number).then().catch(e => console.log(e))
-
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + currentDay + ")",
-        view: "Grid view",
-
-    }).all(
-    );
-    records.forEach(async function (record) {
-        let module_title = record.get("Module " + module_No + " LTitle")
-        let module_list = record.get("Module " + module_No + " List")
-        let last_msg = record.get("Last_Msg")
-
-
-        console.log("Executing List")
-        options = module_list.split("\n").filter(n => n)
-        // console.log(module_title)
-
-        let d = []
-        for (const row of options) {
-            d.push({
-                title: row
-            })
+    try {
+      const course_tn = await us.findTable(number);
+      const id = await us.getID(number);
+  
+      const records = await course_base(course_tn).select({
+        filterByFormula: `({Day} = ${currentDay})`,
+        view: 'Grid view',
+      }).all();
+  
+      for (const record of records) {
+        const module_title = record.get(`Module ${module_No} LTitle`);
+        const module_list = record.get(`Module ${module_No} List`);
+        const last_msg = record.get('Last_Msg');
+  
+        console.log('Executing List');
+        const options = module_list.split('\n').filter(Boolean);
+        const d = options.map((row) => ({ title: row }));
+  
+        console.log('Updating Last_Msg');
+        if (last_msg !== 'Incorrect') {
+          await us.updateField(id, 'Last_Msg', module_title);
         }
-        // console.log(d)
-
-        console.log("8. Updating")
-        // sendContent.sendMediaFile(currentDay, module_No, number).then().catch(e => console.log("Error" + e))
-
-        // setTimeout(() => {
-        if (last_msg == "Incorrect") {
-            console.log("Last Msg ", last_msg)
-        }
-        else {
-            console.log("Last Msg 1", last_msg)
-            await us.updateField(id, "Last_Msg", module_title)
-        }
-
-        WA.sendListInteractive(d, module_title, "Options", number)
-        // }, 0)
-    })
-}
+  
+        WA.sendListInteractive(d, module_title, 'Options', number);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+  
 
 async function sendIMsg(currentDay, module_No, number) {
-    let course_tn = await us.findTable(number)
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + currentDay + ")",
-        view: "Grid view",
-
-    }).all(
-    );
-    records.forEach(async function (record) {
-        console.log(module_No)
-        let module_body = record.get("Module " + module_No + " iBody")
-        let module_buttons = record.get("Module " + module_No + " iButtons")
-        let id = await us.getID(number).then().catch(e => console.log(e))
-
-        console.log("Executing Interactive ", currentDay)
-        if (module_body != undefined) {
-            options = module_buttons.split("\n").filter(n => n)
-            // console.log(options)
-
-
-            let data = []
-            for (const row of options) {
-                data.push({
-                    text: row
-                })
-            }
-            // console.log(data)
-
-            // console.log("Delay of sendMediaFile in sendIMsg")
-            // sendContent.sendMediaFile(currentDay, module_No, number).then().catch(e => console.log("Error" + e))
-
-            us.updateField(id, "Last_Msg", module_body)
-            if (currentDay == 6 && module_No == 1) {
-                console.log("Executing day 6 Interactive")
-
-                setTimeout(() => {
-                    WA.sendDynamicInteractiveMsg(data, module_body, number)
-                    //180000
-                }, 10000)
-            }
-            else {
-                setTimeout(() => {
-                    WA.sendDynamicInteractiveMsg(data, module_body, number)
-                    //180000
-                }, 5000)
-            }
+    try {
+      const course_tn = await us.findTable(number);
+      const records = await course_base(course_tn).select({
+        filterByFormula: `({Day} = ${currentDay})`,
+        view: 'Grid view',
+      }).all();
+  
+      for (const record of records) {
+        const module_body = record.get(`Module ${module_No} iBody`);
+        const module_buttons = record.get(`Module ${module_No} iButtons`);
+        const id = await us.getID(number);
+  
+        if (module_body !== undefined) {
+          const options = module_buttons.split('\n').filter(Boolean);
+          const data = options.map((row) => ({ text: row }));
+  
+          us.updateField(id, 'Last_Msg', module_body);
+  
+          const delay = currentDay === 6 && module_No === 1 ? 10000 : 5000;
+          setTimeout(() => {
+            WA.sendDynamicInteractiveMsg(data, module_body, number);
+          }, delay);
         }
-    })
-}
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+  
 
 async function sendTimeIMsg(number) {
 
@@ -305,35 +273,38 @@ async function waitTime(time, number) {
 }
 
 async function sendQues(currentDay, module_No, number) {
-    let course_tn = await us.findTable(number)
-    let id = await us.getID(number).then().catch(e => console.log(e))
+    try {
+        const course_tn = await us.findTable(number);
+        const id = await us.getID(number);
 
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + currentDay + ")",
-        view: "Grid view",
+        const records = await course_base(course_tn).select({
+            filterByFormula: `({Day} = ${currentDay})`,
+            view: "Grid view",
+        }).all();
 
-    }).all(
-    );
-    records.forEach(async function (record) {
-        let module_ques = record.get("Module " + module_No + " Question")
+        for (const record of records) {
+            const module_ques = record.get(`Module ${module_No} Question`);
+            if (module_ques) {
+                console.log("test:320 - Executing Question");
 
-        console.log("Executing Question ")
-        // console.log(options)
-        console.log("4. Update as last message ")
-        // let modified_ques = module_ques.replace("\n\nShare your thoughts!", " ")
+                await us.updateField(id, "Last_Msg", "Q: " + module_ques);
 
-        await us.updateField(id, "Last_Msg", "Q: " + module_ques)
+                setTimeout(() => {
+                    WA.sendText(module_ques, number);
+                }, 2000);
 
-        setTimeout(() => {
-            WA.sendText(module_ques, number)
-
-        }, 2000)
-        setTimeout(() => {
-            WA.sendText("⬇⁣", number)
-
-        }, 3000)
-    })
+                setTimeout(() => {
+                    WA.sendText("⬇⁣", number);
+                }, 3000);
+            } else {
+                console.log(`test:332 - No question found for Module ${module_No}`);
+            }
+        }
+    } catch (error) {
+        console.error("Error in sendQues:", error);
+    }
 }
+
 
 // store_responses(918779171731, "No")
 async function store_responses(number, value) {
@@ -957,10 +928,10 @@ async function find_QContent(currentDay, module_No, number) {
 }
 //Find modules
 
-async function findModule(currentDay, module_No, number) {  
+async function findModule(currentDay, module_No, number) {
     try {
         const course_tn = await us.findTable(number);
-        console.log("test:962 findModule - ", course_tn);
+        console.log("test:966 findModule - ", course_tn);
 
         const records = await course_base(course_tn).select({
             filterByFormula: `({Day} = ${currentDay})`,
@@ -969,7 +940,7 @@ async function findModule(currentDay, module_No, number) {
 
         for (const record of records) {
             const id = await us.getID(number);
-            console.log("test:974 record - ", record);
+            console.log("test:975 record - ", record);
 
             const day = record.get("Day");
             const module_text = record.get(`Module ${module_No} Text`);
@@ -1054,7 +1025,6 @@ async function findModule(currentDay, module_No, number) {
                     }
                 } else {
                     await sendSplitMessages(module_split, 0, day, module_No, number);
-
                     await us.updateField(id, "Last_Msg", module_text);
 
                     if (module_ques) {
@@ -1086,7 +1056,7 @@ async function findModule(currentDay, module_No, number) {
                                     }
                                 } else {
                                     setTimeout(() => {
-                                        console.log("test:1089 - 2. Delay of Finish Interactive Button - FindModule");
+                                        console.log("test:1059 - 2. Delay of Finish Interactive Button - FindModule");
                                         WA.sendInteractiveButtonsMessage("Let's move on!", "Click Next", "Yes, Next", number);
                                     }, 1000);
                                     break;
@@ -1119,8 +1089,8 @@ async function sendSplitMessages(module_split, startIndex, day, module_No, numbe
 
     for (let i = startIndex; i < module_split.length; i++) {
         try {
-            console.log("test: 1392 - 4. module split ", i);
-            
+            console.log("test: 1125 - 4. module split ", i);
+
             if (i == 0) {
                 // Send the first message without delay
                 await WA.sendText(module_split[i], number);
@@ -1193,7 +1163,7 @@ async function sendStartDayTopic(next_module, cDay, number) {
     try {
         const course_tn = await us.findTable(number);
         console.log("course sendStartDayTopic", course_tn);
-        
+
         const id = await us.getID(number);
         if (!id) {
             console.error("ID not found for number:", number);
@@ -1207,11 +1177,11 @@ async function sendStartDayTopic(next_module, cDay, number) {
 
         for (const record of records) {
             const day_topic = record.get("Day Topic");
-            console.log("test : 1483 - ", day_topic);
+            console.log("test : 1180 - ", day_topic);
 
             if (day_topic) {
                 const [hTxt, bTxt] = day_topic.split("--");
-                console.log("test: 1487 - 0. Updating start day");
+                console.log("test: 1184 - 0. Updating start day");
 
                 await WA.sendInteractiveButtonsMessage(hTxt, bTxt, `Let's Begin`, number);
                 await us.updateField(id, "Last_Msg", "Let's Begin");
@@ -1226,45 +1196,37 @@ async function sendStartDayTopic(next_module, cDay, number) {
 
 
 async function markModuleComplete(number) {
-    const records_Student = await base('Student').select({
-        filterByFormula: "({Phone} =" + number + ")",
-        view: "Grid view",
-
-    }).all();
-    records_Student.forEach(async function (record) {
-
-        let id = record.id
-        let current_module = Number(record.get("Next Module")) //1 
-        // let completed_mNo = Number(record.get("Module Completed"))//0
-        let cDay = Number(record.get("Next Day"))
-        let completed_day = record.get("Completed Day")
-        let name = record.get("Name")
-
-        let next_module = current_module + 1 // 1+1 = 1
-        console.log("test: 1531 - 1. Entered markModuleComplete ", next_module, current_module)
-
+    try {
+      const records_Student = await base('Student').select({
+        filterByFormula: `({Phone} = ${number})`,
+        view: 'Grid view',
+      }).all();
+  
+      for (const record of records_Student) {
+        const id = record.id;
+        const current_module = Number(record.get('Next Module'));
+        const cDay = Number(record.get('Next Day'));
+  
+        const next_module = current_module + 1;
+        console.log(`test:1211 - Entered markModuleComplete: Next Module ${next_module}, Current Module ${current_module}`);
+  
         if (next_module >= 9) {
-            console.log("1. Entered Update", next_module)
-
-            us.updateField(id, "Module Completed", current_module)
-
-            us.updateField(id, "Next Module", 0)
-            findDay(cDay, number);
-
+          console.log('Updating Module Completed and Next Module');
+          await us.updateField(id, 'Module Completed', current_module);
+          await us.updateField(id, 'Next Module', 0);
+          findDay(cDay, number);
+        } else {
+          console.log('Updating Next Module and Module Completed');
+          await us.updateField(id, 'Next Module', next_module);
+          await us.updateField(id, 'Module Completed', current_module);
+          findModule(cDay, next_module, number);
         }
-
-        else {
-            console.log("2. Entered Update", next_module)
-            us.updateField(id, "Next Module", next_module)
-            us.updateField(id, "Module Completed", current_module)
-
-            findModule(cDay, next_module, number)
-
-
-        }
-
-    });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
 }
+
 
 async function markModuleComplete_v2(c_m, number) {
     const records_Student = await base('Student').select({
