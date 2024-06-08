@@ -958,432 +958,159 @@ async function find_QContent(currentDay, module_No, number) {
 //Find modules
 
 async function findModule(currentDay, module_No, number) {  
-    let course_tn = await us.findTable(number).then().catch(e => console.log(e))
-    console.log("test:962  findModule - ", course_tn)
+    try {
+        const course_tn = await us.findTable(number);
+        console.log("test:962 findModule - ", course_tn);
 
+        const records = await course_base(course_tn).select({
+            filterByFormula: `({Day} = ${currentDay})`,
+            view: "Grid view",
+        }).all();
 
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + currentDay + ")",
+        for (const record of records) {
+            const id = await us.getID(number);
+            console.log("test:974 record - ", record);
 
-        view: "Grid view",
+            const day = record.get("Day");
+            const module_text = record.get(`Module ${module_No} Text`);
+            const module_title = record.get(`Module ${module_No} LTitle`);
+            const module_link = record.get(`Module ${module_No} Link`);
+            const module_next_msg = record.get(`Module ${module_No} next`);
+            const interactive_body = record.get(`Module ${module_No} iBody`);
+            const module_ques = record.get(`Module ${module_No} Question`);
 
-    }).all(
-    ).then().catch(e => console.log(e));
-    records.forEach(async function (record) {
-        let id = await us.getID(number).then().catch(e => console.log(e))
-        console.log("test:974  record - ",record)
-        let day = record.get("Day")
-        let module_text = record.get("Module " + module_No + " Text")
-        let module_title = record.get("Module " + module_No + " LTitle")
-        let module_link = record.get("Module " + module_No + " Link")
-        let module_next_msg = record.get("Module " + module_No + " next")
+            const module_split = module_text ? module_text.split("#") : [];
+            console.log("test: 983 - Executing FindModule - module_split ", module_split);
 
-        let interactive_body = record.get("Module " + module_No + " iBody")
-
-        let module_ques = record.get("Module " + module_No + " Question")
-
-        let module_split = []
-        if (module_text != undefined) {
-            module_split = module_text.split("#")
-        }
-        console.log("test: 989 - Executing FindModule - module_split ", module_split)
-
-
-        if (!module_text && !!module_ques) {
-            console.log("Ques not empty - Module Text Empty")
-
-            setTimeout(() => {
-                console.log("4. Delay of media in Ques not empty - Module Text Empty ")
-                sendContent.sendMediaFile(day, module_No, number).then().catch(e => console.log("Error" + e))
-            }, 100)
-
-            await sendQues(currentDay, module_No, number)
-
-
-        }
-        else if (!!interactive_body && !!module_text) {
-            data = module_text
-
-            let index = 0;
-            console.log("test:1008 - 1. Module Split- data - ", data)
-
-            await sendSplitMessages(module_split, index, day, module_No, number)
-
-            // const interval = setInterval(function () {
-            //     if (++index === module_split.length) {
-            //         clearInterval(interval);
-            //         return;
-            //     }
-            //     if (module_split[index].includes("Image")) {
-            //         console.log("Image ", module_split[index])
-            //     }
-            //     else {
-            //         WA.sendText(module_split[index], number).then().catch(e => console.log("Error sending text ", e))
-            //         // console.log(module_split[index]);
-            //     }
-            // }, 3000);
-            // module_split.forEach(msg => {
-            //     console.log("1. module split ", msg)
-            //     setTimeout(() => {
-            //         WA.sendText(msg, number).then().catch(e => console.log("Error sending text ", e))
-
-            //     }, 5000)
-            // });
-            // WA.sendText(data, number).then().catch(e => console.log("SendText error " + e))
-
-            if (!!module_link) {
-                //text > link > IMsg
-                console.log("1. Module link not null")
-
+            if (!module_text && module_ques) {
+                console.log("Ques not empty - Module Text Empty");
 
                 setTimeout(() => {
-                    WA.sendText(module_link, number)
-                }, 2000)
+                    console.log("test:989 - 4. Delay of media in Ques not empty - Module Text Empty");
+                    sendContent.sendMediaFile(day, module_No, number);
+                }, 100);
 
-                console.log("7. Update as last message ")
+                await sendQues(currentDay, module_No, number);
 
-                await us.updateField(id, "Last_Msg", data)
+            } else if (interactive_body && module_text) {
+                console.log("test:996 - 1. Module Split- data - ", module_text);
+                await sendSplitMessages(module_split, 0, day, module_No, number);
 
-
-            }
-            console.log("8. Update as last message ")
-
-            await us.updateField(id, "Last_Msg", data)
-
-            await sendIMsg(currentDay, module_No, number)
-
-        }
-
-
-        else if (!!module_title && !module_text) {
-            console.log("!!module_title && !module_text")
-            await sendList(currentDay, module_No, number)
-
-        }
-        else if (!!interactive_body && !module_text) {
-            console.log("Delay of media in not empty link - interactive not empty")
-            sendContent.sendMediaFile(day, module_No, number).then().catch(e => console.log("Error" + e))
-
-            await sendIMsg(currentDay, module_No, number)
-
-        }
-
-        else if (!!module_text && !module_title) {
-            console.log("!!module_text && !module_title ")
-
-            if (!!interactive_body) {
-                setTimeout(() => {
-                    console.log("2. Delay of media in not empty link ")
-                    sendContent.sendMediaFile(day, module_No, number).then().catch(e => console.log("Error" + e))
-                }, 10000)
-
-                await sendIMsg(currentDay, module_No, number)
-            }
-            // findContent(currentDay, module_No, number)
-            else if (!!module_link) {
-
-                data = module_text
-                let index = 0;
-
-                console.log("2. Split ")
-                await sendSplitMessages(module_split, index, day, module_No, number)
-
-                // const interval = setInterval(function () {
-                //     if (++index === module_split.length) {
-                //         clearInterval(interval);
-                //         return;
-                //     }
-                //     console.log("2. Module Split")
-                //     WA.sendText(module_split[index], number).then().catch(e => console.log("Error sending text ", e))
-                //     console.log(module_split[index]);
-                // }, 3000);
-                // for (const msg of module_split) {
-                //     try {
-                //         console.log("2. module split ")
-                //         // setTimeout(async () => {
-                //         await WA.sendText(msg, number)
-
-                //         // }, 10000)
-                //     } catch (e) {
-                //         console.log("Error sending text ", e)
-                //     }
-                // };
-
-                //Updating Last Msg - 1
-                console.log("1. Update as last message ")
-
-                await us.updateField(id, "Last_Msg", data)
-                // WA.sendText(data, number).then().catch(e => console.log("SendText error " + e))
-
-                // setTimeout(() => {
-                //     console.log("3. Delay of media in not empty link ")
-                //     sendContent.sendMediaFile(day, module_No, number).then().catch(e => console.log("Error" + e))
-                // }, 1)
-
-                if (!!module_ques) {
-                    console.log("1. Ques not empty ")
-
-                    // setTimeout(() => {
-                    //     console.log("Delay of media in not empty question")
-                    //     sendContent.sendMediaFile(day, module_No, number).then().catch(e => console.log("Error- Delay of media in not empty question" + e))
-                    // }, 10000)
-                    setTimeout(async () => {
-                        await sendQues(currentDay, module_No, number)
-                    }, 5000)
-
-                }
-                else {
-                    console.log("Module link not empty ")
+                if (module_link) {
                     setTimeout(() => {
-                        console.log("3. Delay of link ")
-                        WA.sendText(module_link, number)
+                        WA.sendText(module_link, number);
+                    }, 2000);
+                }
 
+                await us.updateField(id, "Last_Msg", module_text);
+                await sendIMsg(currentDay, module_No, number);
 
-                    }, 2500)
+            } else if (module_title && !module_text) {
+                console.log("test:1009 - module_title && !module_text");
+                await sendList(currentDay, module_No, number);
 
-                    // if (course_tn == "WomenWill Hindi") {
-                    //     setTimeout(async () => {
-                    //         for (let i = module_No + 1; i <= 6; i++) {
-                    //             let module_text = record.get("Module " + i + " Text")
-                    //             console.log("After ", i)
-                    //             if (module_text == undefined) {
-                    //                 console.log(module_text)
-                    //                 if (i >= 5) {
-                    //                     await markModuleComplete_v2(i, number).then().catch(error => console.log("v2 ", error))
-                    //                 }
+            } else if (interactive_body && !module_text) {
+                console.log("test:1013 - Delay of media in not empty link - interactive not empty");
+                sendContent.sendMediaFile(day, module_No, number);
+                await sendIMsg(currentDay, module_No, number);
 
-                    //             }
-                    //             else {
-                    //                 const hTxt = `चलो आगे बढ़ते हैं!`
-                    //                 const bTxt = `नेक्स्ट पर क्लिक करें`
-                    //                 const btnTxt = "नेक्स्ट"
-                    //                 // setTimeout(() => {
-                    //                 console.log("1. Delay of Finish Interactive Button - Module")
-                    //                 us.updateField(id, "Last_Msg", btnTxt)
-                    //                 WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
-                    //                 // }, 1000)
-                    //                 break
+            } else if (module_text && !module_title) {
+                console.log("test:1018 - module_text && !module_title");
 
-                    //             }
+                if (interactive_body) {
+                    setTimeout(() => {
+                        console.log("test:1022 - 2. Delay of media in not empty link ");
+                        sendContent.sendMediaFile(day, module_No, number);
+                    }, 10000);
 
-                    //         }
-                    //     }, 500)
-                    // }
-                    // else {
+                    await sendIMsg(currentDay, module_No, number);
+                }
+
+                if (module_link) {
+                    await sendSplitMessages(module_split, 0, day, module_No, number);
+
+                    await us.updateField(id, "Last_Msg", module_text);
+                    setTimeout(() => {
+                        console.log("3. Delay of link ");
+                        WA.sendText(module_link, number);
+                    }, 2500);
+
                     for (let i = module_No + 1; i <= 7; i++) {
-                        let module_text = record.get("Module " + i + " Text")
-                        console.log("4. After ", i)
-                        console.log("module_text ", module_text)
-                        let module_list = record.get("Module " + i + " LTitle")
+                        const next_module_text = record.get(`Module ${i} Text`);
+                        const next_module_list = record.get(`Module ${i} LTitle`);
+                        console.log("4. After ", i, "module_text ", next_module_text);
 
-
-                        if (module_text == undefined && !module_list) {
-
-                            console.log(module_text)
-
-
+                        if (!next_module_text && !next_module_list) {
                             if (i >= 5) {
-                                await markModuleComplete_v2(i, number).then().catch(error => console.log("v2.1 ", error))
+                                await markModuleComplete_v2(i, number);
                             }
-
-                        }
-                        else {
-                            const hTxt = 'Let\'s move on!'
-                            const bTxt = `Click Next`
-                            const btnTxt = "Yes, Next"
-
+                        } else {
                             setTimeout(() => {
-                                console.log("2. Delay of Finish Interactive Button - Module")
-                                WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
-                            }, 1000)
-                            break
-
+                                console.log("2. Delay of Finish Interactive Button - Module");
+                                WA.sendInteractiveButtonsMessage("Let's move on!", "Click Next", "Yes, Next", number);
+                            }, 1000);
+                            break;
                         }
-                        // }
-
-
                     }
-                }
-            }
-            else {
+                } else {
+                    await sendSplitMessages(module_split, 0, day, module_No, number);
 
-                let data = module_text
+                    await us.updateField(id, "Last_Msg", module_text);
 
-                // console.log(module_split)
-                // setTimeout(async () => {
-                //     for (i = 0; i < module_split.length; i++) {
-
-                //         console.log("4. module split ", module_split[i])
-
-                //         await WA.sendText(module_split[i], number).then().catch(e => console.log("Error sending text ", e))
-                //     }
-                // }, 15000)
-
-                // module_split.forEach(msg => {
-                //     console.log("4. module split ")
-
-                //     setTimeout(async () => {
-                //         await WA.sendText(msg, number).then().catch(e => console.log("Error sending text ", e))
-                //     }, 15000)
-
-                // });
-
-                let index = 0;
-                console.log("test: 1232 - 1. module_split")
-                await sendSplitMessages(module_split, index, day, module_No, number)
-
-
-
-
-
-                // const interval = setInterval(function () {
-                //     if (++index === module_split.length) {
-                //         clearInterval(interval);
-                //         return;
-                //     }
-                //     else {
-                //         console.log("4. Module Split")
-                //         console.log(module_split[index])
-
-                //         if (module_split[index].includes("Image")) {
-                //             console.log("4. Delay of sendMediaFile Split")
-
-                //             let image_index = module_split[index].split(" ")
-                //             console.log(Number(image_index[1]))
-
-                //             sendContent.sendMediaFile_v2(Number(image_index[1]), day, module_No, number)
-
-                //         }
-                //         else {
-                //             WA.sendText(module_split[index], number).then().catch(e => console.log("Error sending text ", e))
-                //         }
-                //     }
-                //     // c}onsole.log(module_split[index]);
-                // }, 3000);
-
-                console.log("2. Update as last message ")
-                await us.updateField(id, "Last_Msg", data)
-
-                // await WA.sendText(data, number).then().catch(e => console.log("Error sending text ", e))
-
-                // setTimeout(() => {
-                //     console.log("4. Delay of sendMediaFile")
-                //     sendContent.sendMediaFile(day, module_No, number).then().catch(e => console.log("Error" + e))
-                // }, 15000)
-
-                if (!!module_ques) {
-                    console.log("2. Ques not empty ")
-                    setTimeout(async () => {
-                        await sendQues(currentDay, module_No, number)
-                    }, 10000)
-
-                }
-                //data = "Day" + day + " - " + " Module" + module_No + "\n" + day_topic + "\n" + module_text
-                else {
-
-                    console.log("Module link null ", module_No)
-                    let next_m = module_No + 1
-                    console.log("Module link null nm ", next_m)
-                    let module_ques = record.get("Module " + next_m + " Question")
-                    let module_text = record.get("Module " + next_m + " Text")
-
-                    if (!!module_ques && module_text == undefined) {
-                        console.log("3. Ques not empty ", module_text)
-
-                        us.updateField(id, "Next Module", module_No + 1)
-                        us.updateField(id, "Module Completed", module_No)
-
+                    if (module_ques) {
                         setTimeout(async () => {
-                            await sendQues(currentDay, module_No + 1, number)
-                        }, 10000)
+                            await sendQues(currentDay, module_No, number);
+                        }, 10000);
+                    } else {
+                        let next_m = module_No + 1;
+                        let next_module_ques = record.get(`Module ${next_m} Question`);
+                        let next_module_text = record.get(`Module ${next_m} Text`);
 
+                        if (next_module_ques && !next_module_text) {
+                            us.updateField(id, "Next Module", module_No + 1);
+                            us.updateField(id, "Module Completed", module_No);
 
-                    }
-                    else {
-                        // console.log(module_split)
-                        if (!module_split.includes("\nNext Step")) {
                             setTimeout(async () => {
-                                for (let i = module_No + 1; i <= 9; i++) {
-                                    let module_text = record.get("Module " + i + " Text")
-                                    let module_list = record.get("Module " + i + " LTitle")
-                                    console.log("5. After ", i)
+                                await sendQues(currentDay, module_No + 1, number);
+                            }, 10000);
 
+                        } else {
+                            for (let i = module_No + 1; i <= 9; i++) {
+                                let next_module_text = record.get(`Module ${i} Text`);
+                                let next_module_list = record.get(`Module ${i} LTitle`);
+                                console.log("test:1081 - 5. After ", i);
 
-                                    if (module_text == undefined && !module_list) {
-                                        console.log(module_text, module_ques)
-
-
-                                        if (i >= 7) {
-                                            await markModuleComplete_v2(i, number).then().catch(error => console.log("v2.1 ", error))
-                                        }
-
+                                if (!next_module_text && !next_module_list) {
+                                    if (i >= 7) {
+                                        await markModuleComplete_v2(i, number);
                                     }
-                                    else {
-                                        const hTxt = 'Let\'s move on!'
-                                        const bTxt = `Click Next!`
-                                        const btnTxt = "Yes, Next"
-
-                                        setTimeout(() => {
-                                            console.log("test:1327 - 2. Delay of Finish Interactive Button - FindModule")
-                                            WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
-
-                                        }, 1000)
-                                        break
-
-                                    }
+                                } else {
+                                    setTimeout(() => {
+                                        console.log("test:1089 - 2. Delay of Finish Interactive Button - FindModule");
+                                        WA.sendInteractiveButtonsMessage("Let's move on!", "Click Next", "Yes, Next", number);
+                                    }, 1000);
+                                    break;
                                 }
-                            }, 1000)
-                        }
-                        else {
-                            console.log("!module_text.includes(Next Step) ", !module_split.includes("Next Step"))
+                            }
                         }
                     }
-
-
                 }
+            } else if (module_text && module_title) {
+                await us.updateField(id, "Last_Msg", module_text);
+                await sendSplitMessages(module_split, 0, day, module_No, number);
 
-
-
+                setTimeout(async () => {
+                    await sendList(currentDay, module_No, number);
+                }, 25000);
+            } else {
+                await markModuleComplete(number);
             }
-
-
         }
-        else if (!!module_text && !!module_title) {
-
-            data = module_text
-
-            console.log("3. Update as last message ")
-            await us.updateField(id, "Last_Msg", data)
-
-            let index = 0;
-
-            await sendSplitMessages(module_split, index, day, module_No, number)
-            // const interval = setInterval(function () {
-            //     if (++index === module_split.length) {
-            //         clearInterval(interval);
-            //         return;
-            //     }
-            //     console.log("5. Module Split")
-            //     WA.sendText(module_split[index], number).then().catch(e => console.log("Error sending text ", e))
-            //     // console.log(module_split[index]);
-            // }, 3000);
-            // WA.sendText(data, number)
-
-            setTimeout(async () => {
-                await sendList(currentDay, module_No, number)
-
-            }, 25000)
-
-        }
-
-        else {
-            markModuleComplete(number)
-        }
-
-    })
-
-    // }
+    } catch (error) {
+        console.error("Error in findModule:", error);
+    }
 }
+
 
 async function sendSplitMessages(module_split, startIndex, day, module_No, number) {
     const awaitTimeout = delay => new Promise(resolve => setTimeout(resolve, delay));
@@ -1463,39 +1190,40 @@ async function sendModuleContent(number) {
 
 
 async function sendStartDayTopic(next_module, cDay, number) {
-    let course_tn = await us.findTable(number)
-    console.log("course sendStartDayTopic", course_tn)
-    let id = await us.getID(number).then().catch(e => console.log(e))
-
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + cDay + ")",
-        view: "Grid view",
-
-    }).all();
-    records.forEach(async function (record) {
-        let day_topic = record.get("Day Topic")
-        console.log("test : 1506 - ", day_topic)
-
-        if (day_topic != undefined) {
-            day_topic_split = day_topic.split("--")
-            // console.log(day_topic_split[1])
-            let hTxt = day_topic_split[0]
-            let bTxt = day_topic_split[1]
-
-            console.log("test: 1514 - 0. Updating start day")
-            
-            await WA.sendInteractiveButtonsMessage(hTxt, bTxt, `Let's Begin`, number).then().catch(e => { console.log(e) })
-            await us.updateField(id, "Last_Msg", "Let's Begin")
-            // setTimeout(async () => {
-            //     // await findModule(cDay, next_module, number).then().catch(e => console.log(e))
-            // }, 1000)
-        }
-        else {
-            await findModule(cDay, next_module, number).then().catch(e => console.log(e))
+    try {
+        const course_tn = await us.findTable(number);
+        console.log("course sendStartDayTopic", course_tn);
+        
+        const id = await us.getID(number);
+        if (!id) {
+            console.error("ID not found for number:", number);
+            return;
         }
 
-    })
+        const records = await course_base(course_tn).select({
+            filterByFormula: `({Day} = ${cDay})`,
+            view: "Grid view",
+        }).all();
+
+        for (const record of records) {
+            const day_topic = record.get("Day Topic");
+            console.log("test : 1483 - ", day_topic);
+
+            if (day_topic) {
+                const [hTxt, bTxt] = day_topic.split("--");
+                console.log("test: 1487 - 0. Updating start day");
+
+                await WA.sendInteractiveButtonsMessage(hTxt, bTxt, `Let's Begin`, number);
+                await us.updateField(id, "Last_Msg", "Let's Begin");
+            } else {
+                await findModule(cDay, next_module, number);
+            }
+        }
+    } catch (error) {
+        console.error("Error in sendStartDayTopic:", error);
+    }
 }
+
 
 async function markModuleComplete(number) {
     const records_Student = await base('Student').select({
