@@ -10,7 +10,7 @@ async function find_course_to_create() {
 
     let config = {
         method: 'GET',
-        url : `https://api.airtable.com/v0/${process.env.alfred_base}/${process.env.alfred_table}?maxRecords=1&sort%5B0%5D%5Bfield%5D=Created&sort%5B0%5D%5Bdirection%5D=asc`,
+        url : `https://api.airtable.com/v0/${process.env.alfred_base}/${process.env.alfred_table}?maxRecords=3&sort%5B0%5D%5Bfield%5D=Created&sort%5B0%5D%5Bdirection%5D=asc`,
         // url: `https://api.airtable.com/v0/${process.env.alfred_base}/${process.env.alfred_table}?fields%5B%5D=Phone&fields%5B%5D=Topic&fields%5B%5D=Course+Status&fields%5B%5D=Name&fields%5B%5D=Language&fields%5B%5D=Goal&fields%5B%5D=Style&filterByFormula=OR(%7BCourse+Status%7D+%3D+%22Approved%22%2C%7BCourse+Status%7D+%3D+%22Failed%22+)&maxRecords=1&sort%5B0%5D%5Bfield%5D=Created&sort%5B0%5D%5Bdirection%5D=asc`,
         headers: {
             'Authorization': `Bearer ${process.env.personal_access_token}`,
@@ -40,16 +40,17 @@ async function find_course_to_create() {
 
 async function course_approval() {
     let course_to_create = await find_course_to_create()
-    console.log(course_to_create.length == 0, course_to_create)
+    // console.log(course_to_created.length == 0, course_to_created)
+    for (let i = 0; i < course_to_create.length; i++){
     if (course_to_create.length != 0) {
-        let id = course_to_create[0].id
-        let phone = course_to_create[0].fields.Phone
-        let topic = course_to_create[0].fields.Topic
-        let name = course_to_create[0].fields.Name
-        let goal = course_to_create[0].fields.Goal
-        let style = course_to_create[0].fields.Style
-        let language = course_to_create[0].fields.Language
-        let course_status = course_to_create[0].fields["Course Status"]
+        let id = course_to_create[i].id
+        let phone = course_to_create[i].fields.Phone
+        let topic = course_to_create[i].fields.Topic
+        let name = course_to_create[i].fields.Name
+        let goal = course_to_create[i].fields.Goal
+        let style = course_to_create[i].fields.Style
+        let language = course_to_create[i].fields.Language
+        let course_status = course_to_create[i].fields["Course Status"]
 
         console.log(phone, topic, course_status, language, style, goal, name, id)
 
@@ -72,8 +73,7 @@ async function course_approval() {
         }
 
     }
-
-
+}
 
 }
 // test()

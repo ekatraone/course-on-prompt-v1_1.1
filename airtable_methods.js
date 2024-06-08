@@ -39,6 +39,7 @@ async function updateField(id, field_name, updatedValue) {
 
 async function getID(number) {
 
+    console.log("airtable_methods: 42  ")
     return new Promise(async function (resolve, reject) {
         const course_table = await base_student('Student').select({
             filterByFormula: "({Phone} = " + number + ")",
@@ -48,7 +49,6 @@ async function getID(number) {
         course_table.forEach(function (record) {
             let id = record.id
             resolve(id)
-
             // reject("Error")
         })
     })
@@ -83,7 +83,7 @@ const findTable = async (number) => {
         filterByFormula: "({Phone} = " + number + ")",
         view: "Grid view"
     }).all();
-
+    // console.log("airtable_methods: 86"- course_table)
     return new Promise((resolve, reject) => {
         course_tn = ""
         course_table.forEach(function (record) {
@@ -93,7 +93,8 @@ const findTable = async (number) => {
             reject("error")
 
         })
-    })
+    });
+    //  console.log("airtable_methods: 97");
 }
 
 
@@ -193,7 +194,7 @@ const findLastMsg = async (number) => {
         view: "Grid view",
 
     }).all(
-    );
+    ); console.log("airtable_methods: 197 - course_tn --",  course_tn)
     return new Promise((resolve, reject) => {
         records.forEach(function (record) {
             let body = record.get('Last_Msg');
@@ -239,7 +240,7 @@ const find_ContentField = async (field, currentDay, current_module, number) => {
 }
 
 const findField = async (field, number) => {
-
+    console.log("airtable_methods- 243")
     var course_tn = await findTable(number)
     const records = await base_student("Student").select({
         filterByFormula: "({Phone} =" + number + ")",

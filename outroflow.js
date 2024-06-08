@@ -63,7 +63,7 @@ Congratulations!`
 
             WA.sendDynamicInteractiveMsg(data, int_title, number)
 
-        }, 2200)
+        }, 100)
     })
 }
 
@@ -116,9 +116,9 @@ async function outro_response(value, number) {
 
                 await updateField(id, currentModule).then(async (v) => {
                     if (v == "Success") {
-                        console.log("update ", v)
+                        console.log("outro:119 - update ", v)
 
-                        console.log("current day, currentModule in outro_response 2", currentDay, currentModule)
+                        console.log("outro:121 -current day, currentModule in outro_response 2", currentDay, currentModule)
 
                         sendNameQues(currentDay, nm, number)
                     }

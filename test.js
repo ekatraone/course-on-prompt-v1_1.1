@@ -790,7 +790,7 @@ async function findContent(currentDay, module_No, number) {
                         console.log("2. Delay of Finish Interactive Button - find_QContent")
                         us.updateField(id, "Last_Msg", btnTxt)
                         WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
-                    }, 5000)
+                    }, 1000)
                     break
 
                 }
@@ -944,7 +944,7 @@ async function find_QContent(currentDay, module_No, number) {
                                 console.log("1. Delay of Finish Interactive Button - find_QContent")
                                 us.updateField(id, "Last_Msg", btnTxt)
                                 WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
-                            }, 5000)
+                            }, 1000)
                             break
                         }
                     }
@@ -957,9 +957,9 @@ async function find_QContent(currentDay, module_No, number) {
 }
 //Find modules
 
-async function findModule(currentDay, module_No, number) {
+async function findModule(currentDay, module_No, number) {  
     let course_tn = await us.findTable(number).then().catch(e => console.log(e))
-    // console.log("findModule ", course_tn)
+    console.log("test:962  findModule - ", course_tn)
 
 
     const records = await course_base(course_tn).select({
@@ -971,7 +971,7 @@ async function findModule(currentDay, module_No, number) {
     ).then().catch(e => console.log(e));
     records.forEach(async function (record) {
         let id = await us.getID(number).then().catch(e => console.log(e))
-        console.log("findModule ", course_tn)
+        console.log("test:974  record - ", record)
         let day = record.get("Day")
         let module_text = record.get("Module " + module_No + " Text")
         let module_title = record.get("Module " + module_No + " LTitle")
@@ -986,7 +986,7 @@ async function findModule(currentDay, module_No, number) {
         if (module_text != undefined) {
             module_split = module_text.split("#")
         }
-        console.log("Executing FindModule ",)
+        console.log("test: 989 - Executing FindModule - module_split ", module_split)
 
 
         if (!module_text && !!module_ques) {
@@ -1005,7 +1005,7 @@ async function findModule(currentDay, module_No, number) {
             data = module_text
 
             let index = 0;
-            console.log("1. Module Split",)
+            console.log("test:1008 - 1. Module Split- data - ", data)
 
             await sendSplitMessages(module_split, index, day, module_No, number)
 
@@ -1195,7 +1195,7 @@ async function findModule(currentDay, module_No, number) {
                             setTimeout(() => {
                                 console.log("2. Delay of Finish Interactive Button - Module")
                                 WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
-                            }, 8000)
+                            }, 1000)
                             break
 
                         }
@@ -1324,15 +1324,15 @@ async function findModule(currentDay, module_No, number) {
                                         const btnTxt = "Yes, Next"
 
                                         setTimeout(() => {
-                                            console.log("2. Delay of Finish Interactive Button - FindModule")
+                                            console.log("test:1327 - 2. Delay of Finish Interactive Button - FindModule")
                                             WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
 
-                                        }, 8000)
+                                        }, 1000)
                                         break
 
                                     }
                                 }
-                            }, 10000)
+                            }, 1000)
                         }
                         else {
                             console.log("!module_text.includes(Next Step) ", !module_split.includes("Next Step"))
@@ -1386,12 +1386,12 @@ async function findModule(currentDay, module_No, number) {
 }
 async function sendSplitMessages(module_split, index, day, module_No, number) {
     const awaitTimeout = delay => new Promise(resolve => setTimeout(resolve, delay));
-
+    console.log("test:1389 - module_split --", module_split)
     for (index; index < module_split.length; index++) {
         try {
-            console.log("4. module split ", index)
+            console.log("test: 1392 - 4. module split ", index)
             if (index == 0) {
-                console.log('Waiting time 0')
+                // console.log('Waiting time 0')
                 // if (module_split[index].includes("Image")) {
                 //     console.log("4.1 Delay of sendMediaFile Split")
 
@@ -1414,19 +1414,19 @@ async function sendSplitMessages(module_split, index, day, module_No, number) {
                     let image_index = module_split[index].split(" ")
                     console.log("Image Index ", Number(image_index[1]))
 
-                    await awaitTimeout(2000)
+                    await awaitTimeout(200)
                     sendContent.sendMediaFile_v2(Number(image_index[1]), day, module_No, number)
 
                 }
                 else if (module_split[index].includes("Next Step")) {
                     console.log("Next step interactive", index)
 
-                    await awaitTimeout(4000)
+                    await awaitTimeout(400)
                     WA.sendDynamicInteractiveMsg([{ text: "Next Step" }], "Let's go to the next step. We're ready when you are.", number)
 
                 }
                 else {
-                    await awaitTimeout(8000)
+                    await awaitTimeout(800)
                     WA.sendText(module_split[index], number).then().catch(e => console.log("Error sending text ", e))
                 }
             }
@@ -1462,7 +1462,7 @@ async function sendModuleContent(number) {
 
             if (cDay == 13) {
                 console.log("Executing outro sendModuleContent ")
-                await outro.outro_flow(cDay, number)
+                await outro.outro_flow(cDay, number) //phone number
             }
 
             else if (next_module == Number(0)) {
@@ -1474,7 +1474,7 @@ async function sendModuleContent(number) {
             }
             else {
                 if (completed_module === 0 && next_module === 1) {
-                    console.log(`Starting Day ${cDay} of ${number}`)
+                    console.log(`test:1477 - Starting Day ${cDay} of ${number}`)
                     await sendStartDayTopic(next_module, cDay, number)
 
                 }
@@ -1503,7 +1503,7 @@ async function sendStartDayTopic(next_module, cDay, number) {
     }).all();
     records.forEach(async function (record) {
         let day_topic = record.get("Day Topic")
-        console.log(day_topic)
+        console.log("test : 1506 - ", day_topic)
 
         if (day_topic != undefined) {
             day_topic_split = day_topic.split("--")
@@ -1511,10 +1511,10 @@ async function sendStartDayTopic(next_module, cDay, number) {
             let hTxt = day_topic_split[0]
             let bTxt = day_topic_split[1]
 
-            console.log("0. Updating start day")
-            await us.updateField(id, "Last_Msg", "Let's Begin")
+            console.log("test: 1514 - 0. Updating start day")
+            
             await WA.sendInteractiveButtonsMessage(hTxt, bTxt, `Let's Begin`, number).then().catch(e => { console.log(e) })
-
+            await us.updateField(id, "Last_Msg", "Let's Begin")
             // setTimeout(async () => {
             //     // await findModule(cDay, next_module, number).then().catch(e => console.log(e))
             // }, 1000)
