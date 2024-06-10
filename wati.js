@@ -17,7 +17,7 @@ const getMessages = async (senderID, at) => {
             }
         };
         request(options, function (error, response) {
-            if (error) { //console.log(error); }
+            if (error) { console.log(error); }
             else {
                 at = Number(at)
                 // //console.log(typeof at)
@@ -64,7 +64,7 @@ const sendMedia = async (file, filename, senderID) => {
         }
     };
     request(options, function (error, response) {
-        if (error) //console.log(error)
+        if (error) console.log(error)
         ////console.log(response.body);
     });
 
@@ -93,7 +93,7 @@ const sendInteractiveButtonsMessage = async (hTxt, bTxt, btnTxt, senderID) => {
 
     };
     request(options, function (error, response) {
-        if (error) //console.log(error);
+        if (error) console.log(error);
         //console.log(response.body);
     });
 }
@@ -230,7 +230,7 @@ async function sendTemplateMessage(day, course_name, template_name, senderID) {
         result = body.result
         ////console.log(typeof result)
         if (error || result == false)
-            //console.log("WATI error " + response.body)
+            console.log("WATI error " + response.body)
 
         //console.log("Res " + result);
     });
