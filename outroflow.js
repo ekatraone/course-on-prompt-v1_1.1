@@ -21,7 +21,7 @@ async function outro_flow(cDay, number) {
         }).all();
 
         for (const record of records) {
-            console.log(course_tn);
+            //console.log(course_tn);
 
             // Define the outro messages
             let day_topic = `Thank you for taking ${course_tn}! We hope you learnt some new things with us.`;
@@ -29,7 +29,7 @@ async function outro_flow(cDay, number) {
             let int_title = `Would you like to receive a certificate confirming the completion of your course?`;
             let int_btn = `Yes!\nNo, I'll pass`;
 
-            console.log("Updating last message of outro_flow");
+            //console.log("Updating last message of outro_flow");
             await us.updateField(id, "Last_Msg", day_topic);
 
             // Send initial message
@@ -46,7 +46,7 @@ async function outro_flow(cDay, number) {
 
             // Send interactive message after a short delay
             setTimeout(async () => {
-                console.log("Updating last message of outro_flow");
+                //console.log("Updating last message of outro_flow");
                 await us.updateField(id, "Last_Msg", int_title);
                 await WA.sendDynamicInteractiveMsg(data, int_title, number);
             }, 1100); // Slightly longer delay to ensure sequence
@@ -61,7 +61,7 @@ async function outro_flow(cDay, number) {
 
 async function outro_response(value, number) {
     //var course_tn = await us.findTable(number)
-    console.log(value, number)
+    //console.log(value, number)
 
     const records = await base_student("Student").select({
         filterByFormula: "({Phone} =" + number + ")",
@@ -76,7 +76,7 @@ async function outro_response(value, number) {
         // let currentModule = record.get("Next Module")
         // let currentDay = record.get("Next Day")
 
-        console.log("outro currentModule ", currentModule)
+        //console.log("outro currentModule ", currentModule)
 
         let interactive_msg = await us.findInteractive(currentDay, currentModule, number).then().catch(e => console.error("Error in store_intResponse ", e))
 
@@ -93,22 +93,22 @@ async function outro_response(value, number) {
 
 
         us.updateField(id, "Completion_Certificate", newValues).then(async () => {
-            console.log("2. New Feedback recorded")
+            //console.log("2. New Feedback recorded")
 
-            console.log(body, body == 'Would you like to receive a certification confirming you completed the course? ')
+            //console.log(body, body == 'Would you like to receive a certification confirming you completed the course? ')
             if (value == "Yes!") {
-                // console.log(body)
+                // //console.log(body)
 
                 let nm = currentModule + 1
                 us.updateField(id, "Day Completed", 12)
                 us.updateField(id, "Next Day", 13)
-                console.log(currentModule, nm)
+                //console.log(currentModule, nm)
 
                 await updateField(id, currentModule).then(async (v) => {
                     if (v == "Success") {
-                        console.log("outro:119 - update ", v)
+                        //console.log("outro:119 - update ", v)
 
-                        console.log("outro:121 -current day, currentModule in outro_response 2", currentDay, currentModule)
+                        //console.log("outro:121 -current day, currentModule in outro_response 2", currentDay, currentModule)
 
                         sendNameQues(currentDay, nm, number)
                     }
@@ -122,7 +122,7 @@ async function outro_response(value, number) {
             else if (value == "No") {
                 setTimeout(() => {
 
-                    console.log("3. Updating last message of outroflow")
+                    //console.log("3. Updating last message of outroflow")
                     us.updateField(id, "Last_Msg", "If you want to learn more about *Ekatra*")
 
                     WA.sendText(`If you want to learn more about *Ekatra*, \nVisit _https://www.ekatra.one_.`, number)
@@ -162,11 +162,11 @@ async function sendNameQues(currentDay, module_No, number) {
     records.forEach(function (record) {
         let module_ques = record.get("Module " + module_No + " Question")
 
-        console.log("Executing Name Question ")
-        console.log("module_No ", module_No)
+        //console.log("Executing Name Question ")
+        //console.log("module_No ", module_No)
 
         // setTimeout(() => {
-        console.log("4. Updating last message of outroflow")
+        //console.log("4. Updating last message of outroflow")
         us.updateField(id, "Last_Msg", module_ques)
 
         WA.sendText(module_ques, number)
@@ -181,7 +181,7 @@ async function sendNameQues(currentDay, module_No, number) {
 
 async function store_quesName(number, value) {
     //var course_tn = await us.findTable(number)
-    console.log("Executing Name ")
+    //console.log("Executing Name ")
 
     const records = await base_student("Student").select({
         filterByFormula: "({Phone} =" + number + ")",
@@ -196,43 +196,43 @@ async function store_quesName(number, value) {
         let currentModule = record.get("Next Module")
         let currentDay = record.get("Next Day")
 
-        console.log("currentDay, currentModule in store_quesName ", currentDay, currentModule)
+        //console.log("currentDay, currentModule in store_quesName ", currentDay, currentModule)
 
         let ques = await us.findQuestion(currentDay, currentModule, number).then().catch(e => console.error("Error in store_quesResponse ", e))
 
-        console.log("last_msg ", ques, last_msg)
+        //console.log("last_msg ", ques, last_msg)
 
         if (last_msg == ques) {
 
 
             let existingValues = await us.findQuesRecord(id)
-            console.log("Existing Record ", existingValues)
+            //console.log("Existing Record ", existingValues)
 
             if (ques != undefined) {
                 if (existingValues == undefined) {
-                    console.log("existingValues")
+                    //console.log("existingValues")
 
                     existingValues = ""
                     newValues = `${value}`
 
                 }
                 else {
-                    console.log("existingValues")
+                    //console.log("existingValues")
                     newValues = `${value}`
 
                 }
 
 
                 us.updateField(id, "Full_Name", newValues).then(async () => {
-                    console.log("3. New Name  recorded")
+                    //console.log("3. New Name  recorded")
 
                     let nm = currentModule + 1
 
                     await updateField(id, currentModule).then(async (v) => {
                         if (v == "Success") {
-                            console.log("update ", v)
+                            //console.log("update ", v)
 
-                            console.log("current day, currentModule in outro_response 2", currentDay, currentModule)
+                            //console.log("current day, currentModule in outro_response 2", currentDay, currentModule)
 
                             await sendEmailQues(currentDay, nm, number)
                         }
@@ -243,7 +243,7 @@ async function store_quesName(number, value) {
             }
         }
         else {
-            console.log("No Name")
+            //console.log("No Name")
         }
     })
 }
@@ -261,9 +261,9 @@ async function sendEmailQues(currentDay, module_No, number) {
     records.forEach(function (record) {
         let module_ques = record.get("Module " + module_No + " Question")
 
-        console.log("Executing Email Question ")
+        //console.log("Executing Email Question ")
 
-        console.log("5. Updating last message of outroflow")
+        //console.log("5. Updating last message of outroflow")
         us.updateField(id, "Last_Msg", module_ques)
 
 
@@ -279,7 +279,7 @@ async function sendEmailQues(currentDay, module_No, number) {
 
 async function store_quesEmail(number, value) {
     //var course_tn = await us.findTable(number)
-    console.log("Executing Email ")
+    //console.log("Executing Email ")
     const records = await base_student("Student").select({
         filterByFormula: "({Phone} =" + number + ")",
         view: "Grid view",
@@ -298,38 +298,38 @@ async function store_quesEmail(number, value) {
 
         let ques = await us.findQuestion(currentDay, currentModule, number).then().catch(e => console.error("Error in store_quesResponse ", e))
 
-        console.log("last_msg ", ques, last_msg)
+        //console.log("last_msg ", ques, last_msg)
 
         if (last_msg == ques) {
 
 
             let existingValues = await us.findQuesRecord(id)
-            console.log("Existing Record ", existingValues)
+            //console.log("Existing Record ", existingValues)
 
             if (ques != undefined) {
                 if (existingValues == undefined) {
-                    console.log("existingValues")
+                    //console.log("existingValues")
 
                     existingValues = ""
                     newValues = `${value}`
 
                 }
                 else {
-                    console.log("existingValues")
+                    //console.log("existingValues")
                     newValues = `${value}`
 
                 }
 
                 us.updateField(id, "Email", newValues).then(async () => {
-                    console.log("3. New Email recorded")
+                    //console.log("3. New Email recorded")
 
                     await updateField(id, currentModule).then(async (v) => {
                         if (v == "Success") {
 
 
-                            console.log("update ", v)
+                            //console.log("update ", v)
 
-                            console.log("current day, currentModule in outro_response 2", currentDay, currentModule)
+                            //console.log("current day, currentModule in outro_response 2", currentDay, currentModule)
 
                             us.updateField(id, "Day Completed", currentDay)
                             us.updateField(id, "Next Day", currentDay + 1)
@@ -337,7 +337,7 @@ async function store_quesEmail(number, value) {
 
                             WA.sendText(`Your certificate is on the way!`, number)
                             setTimeout(() => {
-                                console.log("6. Updating last message of outroflow")
+                                //console.log("6. Updating last message of outroflow")
                                 us.updateField(id, "Last_Msg", "If you want to learn more about *Ekatra*")
 
                                 WA.sendText(`If you want to learn more about *Ekatra*, \nVisit _https://www.ekatra.one_.
@@ -345,10 +345,10 @@ async function store_quesEmail(number, value) {
                             })
 
                             setTimeout(async () => {
-                                console.log(`Sending certificate to ${full_name}`)
+                                //console.log(`Sending certificate to ${full_name}`)
                                 const certificate_pdf = await cert.createCertificate(full_name)
 
-                                console.log("7. Updating last message of outroflow")
+                                //console.log("7. Updating last message of outroflow")
                                 us.updateField(id, "Last_Msg", "document")
 
                                 await WA.sendMedia(certificate_pdf, `${full_name}_certificate.pdf`, number)
@@ -366,7 +366,7 @@ async function store_quesEmail(number, value) {
 
         }
         else {
-            console.log("No email")
+            //console.log("No email")
         }
     })
 }

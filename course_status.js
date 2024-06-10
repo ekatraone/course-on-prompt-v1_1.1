@@ -28,10 +28,10 @@ async function find_course_to_create() {
         })
         .catch((error) => {
             if (error.response) {
-                console.log("Alfred Record Error", error.response.data);
+                //console.log("Alfred Record Error", error.response.data);
                 return error.response.data;
             } else {
-                console.log("Network Error:", error.message);
+                //console.log("Network Error:", error.message);
                 return { error: "Network Error" };
             }
         });        
@@ -40,7 +40,7 @@ async function find_course_to_create() {
 
 async function course_approval() {
     let course_to_create = await find_course_to_create()
-    // console.log(course_to_created.length == 0, course_to_created)
+    // //console.log(course_to_created.length == 0, course_to_created)
     for (let i = 0; i < course_to_create.length; i++){
     if (course_to_create.length != 0) {
         let id = course_to_create[i].id
@@ -52,24 +52,24 @@ async function course_approval() {
         let language = course_to_create[i].fields.Language
         let course_status = course_to_create[i].fields["Course Status"]
 
-        console.log(phone, topic, course_status, language, style, goal, name, id)
+        //console.log(phone, topic, course_status, language, style, goal, name, id)
 
-        let generate_course_status = await cop.generate_course(phone, topic, goal, style, language).then().catch(e => console.log("Generate course error " + e));
+        let generate_course_status = await cop.generate_course(phone, topic, goal, style, language).then().catch(e => //console.log("Generate course error " + e));
         if (generate_course_status == 200) {
-            console.log("Course Generated");
-            airtable.updateAlfredData(id, "Last_Msg", "course generated").then().catch(e => console.log("Update last msg error " + e));
+            //console.log("Course Generated");
+            airtable.updateAlfredData(id, "Last_Msg", "course generated").then().catch(e => //console.log("Update last msg error " + e));
 
-            airtable.updateAlfredData(id, "Course Status", "Content Created").then().catch(e => console.log("Update last msg error " + e));
+            airtable.updateAlfredData(id, "Course Status", "Content Created").then().catch(e => //console.log("Update last msg error " + e));
 
 
             let does_student_exist = await airtable.find_student_record(phone).then().catch(e => console.error("Error finding Student " + e));
             airtable.update_student_record(id)
-            airtable.updateField(id, "Last_Msg", "Start Course").then().catch(e => console.log("Update student record error " + e))
+            airtable.updateField(id, "Last_Msg", "Start Course").then().catch(e => //console.log("Update student record error " + e))
 
 
         } else {
-            console.log("Course Not Generated");
-            airtable.updateAlfredData(id, "Course Status", "Failed").then().catch(e => console.log("Update last msg error " + e));
+            //console.log("Course Not Generated");
+            airtable.updateAlfredData(id, "Course Status", "Failed").then().catch(e => //console.log("Update last msg error " + e));
         }
 
     }

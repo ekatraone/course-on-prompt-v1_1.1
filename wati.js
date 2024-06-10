@@ -17,16 +17,16 @@ const getMessages = async (senderID, at) => {
             }
         };
         request(options, function (error, response) {
-            if (error) { console.log(error); }
+            if (error) { //console.log(error); }
             else {
                 at = Number(at)
-                // console.log(typeof at)
+                // //console.log(typeof at)
                 try {
-                    // console.log("response.body ", response)
+                    // //console.log("response.body ", response)
                     result = JSON.parse(response.body)
-                    // console.log("result 1 ", result.messages.items[at]?.text)
+                    // //console.log("result 1 ", result.messages.items[at]?.text)
 
-                    // console.log("result", result.messages)
+                    // //console.log("result", result.messages)
                     if (result != undefined) {
 
                         last_text = result.messages.items[at].text
@@ -35,7 +35,7 @@ const getMessages = async (senderID, at) => {
                     }
                 }
                 catch (error) {
-                    console.log(error);
+                    //console.log(error);
                     //reject(e);
                 }
             }
@@ -64,8 +64,8 @@ const sendMedia = async (file, filename, senderID) => {
         }
     };
     request(options, function (error, response) {
-        if (error) console.log(error)
-        //console.log(response.body);
+        if (error) //console.log(error)
+        ////console.log(response.body);
     });
 
 }
@@ -93,8 +93,8 @@ const sendInteractiveButtonsMessage = async (hTxt, bTxt, btnTxt, senderID) => {
 
     };
     request(options, function (error, response) {
-        if (error) console.log(error);
-        console.log(response.body);
+        if (error) //console.log(error);
+        //console.log(response.body);
     });
 }
 
@@ -154,7 +154,7 @@ const sendListInteractive = async (data, body, btnText, senderID) => {
     };
     request(options, function (error, response) {
         if (error) throw new Error(error);
-        console.log("Result returned", response.body);
+        //console.log("Result returned", response.body);
 
     });
 }
@@ -199,7 +199,7 @@ const sendDynamicInteractiveMsg = async (data, body, senderID) => {
 
             try {
                 const parsedBody = JSON.parse(response.body);
-                console.log(parsedBody);
+                //console.log(parsedBody);
                 resolve(parsedBody);
             } catch (parseError) {
                 console.error("Error parsing response body:", parseError);
@@ -228,11 +228,11 @@ async function sendTemplateMessage(day, course_name, template_name, senderID) {
     request(options, function (error, response) {
         body = JSON.parse(response.body)
         result = body.result
-        //console.log(typeof result)
+        ////console.log(typeof result)
         if (error || result == false)
-            console.log("WATI error " + response.body)
+            //console.log("WATI error " + response.body)
 
-        console.log("Res " + result);
+        //console.log("Res " + result);
     });
 }
 

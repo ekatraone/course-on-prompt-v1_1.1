@@ -14,7 +14,7 @@ let course_base = new Airtable({ apiKey: process.env.airtable_api }).base(proces
 let alfred_base = new Airtable({ apiKey: process.env.airtable_api }).base(process.env.alfred_base);
 // this table is alfred cop
 
-// console.log(base)
+// //console.log(base)
 
 async function updateField(id, field_name, updatedValue) {
     try {
@@ -37,7 +37,7 @@ async function updateField(id, field_name, updatedValue) {
 
 async function getID(number) {
 
-    console.log("airtable_methods: 42 -get ID  ")
+    //console.log("airtable_methods: 42 -get ID  ")
     return new Promise(async function (resolve, reject) {
         const course_table = await base_student('Student').select({
             filterByFormula: "({Phone} = " + number + ")",
@@ -68,7 +68,7 @@ const totalDays = async (number) => {
             count += 1
 
         })
-        console.log(count)
+        //console.log(count)
         resolve(count)
         reject("Error")
     })
@@ -81,7 +81,7 @@ const findTable = async (number) => {
         filterByFormula: "({Phone} = " + number + ")",
         view: "Grid view"
     }).all();
-    // console.log("airtable_methods: 86"- course_table)
+    // //console.log("airtable_methods: 86"- course_table)
     return new Promise((resolve, reject) => {
         course_tn = ""
         course_table.forEach(function (record) {
@@ -92,7 +92,7 @@ const findTable = async (number) => {
 
         })
     });
-    //  console.log("airtable_methods: 97");
+    //  //console.log("airtable_methods: 97");
 }
 
 
@@ -131,7 +131,7 @@ const findTitle = async (currentDay, module_no, number) => {
             let title = record.get('Module ' + module_no + ' LTitle');
             let options = record.get('Module ' + module_no + ' List');
             if (title !== undefined) {
-                console.log(title, options.split("\n"))
+                //console.log(title, options.split("\n"))
                 resolve([title, options.split("\n")])
 
             }
@@ -196,10 +196,10 @@ async function findLastMsg(number) {
         records.forEach((record) => {
           const body = record.get("Last_Msg");
           if (body !== undefined) {
-            console.log("Last msg of " + number, body);
+            //console.log("Last msg of " + number, body);
             resolve(body);
           } else {
-            console.log("Last msg of " + number, body);
+            //console.log("Last msg of " + number, body);
             resolve(undefined);
           }
         });
@@ -226,7 +226,7 @@ async function find_ContentField(field, currentDay, current_module, number) {
             const feedback_options = [body];
             resolve(feedback_options[0].split('\n'));
           } else {
-            console.log('Feedback 0');
+            //console.log('Feedback 0');
             resolve(0);
           }
         });
@@ -239,7 +239,7 @@ async function find_ContentField(field, currentDay, current_module, number) {
   
 async function findField(field, number) {
     try {
-      console.log('airtable_methods- 243 - find field');
+      //console.log('airtable_methods- 243 - find field');
       const course_tn = await findTable(number);
       const records = await base_student('Student').select({
         filterByFormula: `({Phone} = ${number})`,
@@ -308,14 +308,14 @@ async function createTable(course_name, course_fields) {
       };
   
       const response = await axios.request(config);
-      // console.log("Table Created:", response.data);
+      // //console.log("Table Created:", response.data);
       return response.data.id;
     } catch (error) {
       console.error('Error creating table:', error);
       if (error.response.data.error.type === 'DUPLICATE_OR_EMPTY_FIELD_NAME') {
-        console.log('DUPLICATE_OR_EMPTY_FIELD_NAME', error.response.data.error);
+        //console.log('DUPLICATE_OR_EMPTY_FIELD_NAME', error.response.data.error);
       } else {
-        console.log('Error:', error.response.data);
+        //console.log('Error:', error.response.data);
       }
       return error.response.data;
     }
@@ -340,7 +340,7 @@ async function updateCourseTable(course_name, new_table_name) {
       };
   
       const response = await axios.request(config);
-      // console.log("Table Updated:", response.data);
+      // //console.log("Table Updated:", response.data);
       return response.status;
     } catch (error) {
       console.error('Error updating table:', error);
@@ -368,7 +368,7 @@ async function create_record(record_array, course_name) {
       };
   
       const response = await axios.request(config);
-      // console.log("Course Record Created:", response.data);
+      // //console.log("Course Record Created:", response.data);
       return response.status;
     } catch (error) {
       console.error('Error creating course record:', error);
@@ -405,7 +405,7 @@ async function create_student_record(senderID, name, topic) {
       };
   
       const response = await axios.request(config);
-      // console.log("Student Record Created:", response.data);
+      // //console.log("Student Record Created:", response.data);
       return response.status;
     } catch (error) {
       console.error('Error creating student record:', error);
@@ -440,7 +440,7 @@ async function update_student_record(id) {
       };
   
       const response = await axios.request(config);
-      // console.log("Student Record Updated:", response.data);
+      // //console.log("Student Record Updated:", response.data);
       return response.status;
     } catch (error) {
       console.error('Error updating student record:', error);
@@ -475,7 +475,7 @@ async function create_course_record(senderID, name) {
       };
   
       const response = await axios.request(config);
-      // console.log("Course Record Created:", response.data);
+      // //console.log("Course Record Created:", response.data);
       return response.status;
     } catch (error) {
       console.error("Error creating course record:", error);
@@ -497,7 +497,7 @@ async function find_student_record(senderID) {
   
       const response = await axios.request(config);
       const records = response.data.records;
-      console.log(records);
+      //console.log(records);
       return records;
     } catch (error) {
       console.error('Error:', error);
@@ -519,7 +519,7 @@ async function find_student_record(senderID) {
   
       const response = await axios.request(config);
       const records = response.data.records;
-      // console.log("Alfred Record ", records);
+      // //console.log("Alfred Record ", records);
       return records;
     } catch (error) {
       console.error('Alfred Record Error:', error);
@@ -541,7 +541,7 @@ async function find_student_record(senderID) {
   
       const response = await axios.request(config);
       const records = response.data.records;
-      // console.log("Existing Records:", records);
+      // //console.log("Existing Records:", records);
       return records;
     } catch (error) {
       console.error('Error fetching existing student records:', error);
@@ -563,7 +563,7 @@ async function existingStudents_internal(senderID) {
   
       const response = await axios.request(config);
       const records = response.data.records;
-      // console.log("Existing Records:", records);
+      // //console.log("Existing Records:", records);
       return records;
     } catch (error) {
       console.error('Error fetching existing student records:', error);
@@ -592,7 +592,7 @@ async function update_internal_student_record(student_id, last_msg) {
       };
   
       const response = await axios.request(config);
-      // console.log("Internal Student Record Updated:", response.data);
+      // //console.log("Internal Student Record Updated:", response.data);
       return response.status;
     } catch (error) {
       console.error('Error updating internal student record:', error);
@@ -625,7 +625,7 @@ async function update_student_record(student_id, course_name) {
       };
   
       const response = await axios.request(config);
-      // console.log("Student Record Updated:", response.data);
+      // //console.log("Student Record Updated:", response.data);
       return response.status;
     } catch (error) {
       console.error('Error updating student record:', error);
@@ -654,7 +654,7 @@ async function updateAlfredData(course_id, field_name, field_value) {
         };
 
         const response = await axios.request(config);
-        // console.log("Alfred Record Updated:", response.data);
+        // //console.log("Alfred Record Updated:", response.data);
         return response.status;
     } catch (error) {
         console.error('Error updating Alfred data:', error);
@@ -676,7 +676,7 @@ async function ListCourseFields(course_name) {
   
       const response = await axios.request(config);
       const records = response.data.records;
-      console.log(records);
+      //console.log(records);
       return response.data;
     } catch (error) {
       console.error('List record error:', error);
