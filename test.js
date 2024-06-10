@@ -14,65 +14,56 @@ let course_base = new Airtable({ apiKey: process.env.airtable_api }).base(proces
 //Called on Finish day keyword
 
 async function markDayComplete(number) {
-    const records_Student = await base('Student').select({
-        filterByFormula: "({Phone} =" + number + ")",
-        view: "Grid view",
+    try {
+        // Fetch student records based on phone number
+        const records_Student = await base('Student').select({
+            filterByFormula: `({Phone} = "${number}")`,
+            view: "Grid view"
+        }).all();
 
-    }).all();
+        // Get total days for the user
+        let total_days = await us.totalDays(number);
 
-    let total_days = 0
-    total_days = await us.totalDays(number)
+        // Process each student record
+        for (const record of records_Student) {
+            console.log("Entered markDayComplete");
 
-    records_Student.forEach(async function (record) {
-        console.log("Entered markDayComplete")
-        let name = record.get("Name")
-        let course = record.get("Topic")
-        let id = record.id
-        let comp_day = Number(record.get("Next Day"))
-        let nextDay = comp_day + 1
+            let name = record.get("Name");
+            let course = record.get("Topic");
+            let id = record.id;
+            let comp_day = Number(record.get("Next Day"));
+            let nextDay = comp_day + 1;
 
-        if (comp_day <= total_days) {
+            // Update fields if the completed day is less than or equal to total days
+            if (comp_day <= total_days) {
+                try {
+                    await Promise.all([
+                        us.updateField(id, "Next Day", nextDay),
+                        us.updateField(id, "Day Completed", comp_day),
+                        us.updateField(id, "Next Module", 1),
+                        us.updateField(id, "Module Completed", 0)
+                    ]);
 
-            try {
-                us.updateField(id, "Next Day", nextDay).then()
-                    .catch(e => console.log("1", e))
+                    console.log(`Completed Day ${comp_day} of ${total_days}`);
+                    console.log(`Next day is ${nextDay}, Total days are ${total_days}, Next day equals total days plus one: ${nextDay == total_days + 1}`);
 
-                us.updateField(id, "Day Completed", comp_day).then()
-                    .catch(e => console.log("2", e))
-
-                console.log("Complete Day " + comp_day, total_days)
-
-
-                //Reset module numbers
-                const next_mod = 1
-                const module_completed = 0
-                us.updateField(id, "Next Module", next_mod).then()
-                    .catch(e => console.log("3", e))
-
-                us.updateField(id, "Module Completed", module_completed).then()
-                    .catch(e => console.log("4", e))
-
-                console.log("Next day is ", nextDay, "Total days are ", total_days, nextDay == total_days + 1)
-                if (nextDay == total_days + 1) {
-
-                    console.log("Executing Outro for ", name, nextDay)
-                    setTimeout(async () => {
-                        outro.outro_flow(total_days, number)
-                    }, 4000)
-
+                    // Check if next day is beyond total days to trigger outro flow
+                    if (nextDay === total_days + 1) {
+                        console.log(`Executing Outro for ${name} on day ${nextDay}`);
+                        setTimeout(async () => {
+                            await outro.outro_flow(total_days, number);
+                        }, 4000);
+                    }
+                } catch (e) {
+                    console.log(`Error while updating fields for complete day: ${e}`);
                 }
-
-
-            }
-            catch (e) {
-                console.log("Error while updating complete day " + e)
             }
         }
-
-
-
-    });
+    } catch (error) {
+        console.error(`Error in markDayComplete: ${error}`);
+    }
 }
+
 
 // Find  current day content and called on in sendContent method
 async function findDay(currentDay, number) {
@@ -186,7 +177,7 @@ async function sendList(currentDay, module_No, number) {
     } catch (error) {
       console.error('Error:', error);
     }
-  }
+}
   
 
 async function sendIMsg(currentDay, module_No, number) {
@@ -217,7 +208,7 @@ async function sendIMsg(currentDay, module_No, number) {
     } catch (error) {
       console.error('Error:', error);
     }
-  }
+}
   
 
 async function sendTimeIMsg(number) {
@@ -240,37 +231,39 @@ async function sendTimeIMsg(number) {
 }
 
 async function waitTime(time, number) {
-    time = time.split(" ")
-    let wait_time = time[0]
-    let id = await us.getID(number).then().catch(e => console.log(e))
+    try {
+        // Split time string into value and unit
+        let [wait_time, unit] = time.split(" ");
 
-    console.log("Time value ", wait_time, time)
-    if (time[1] == "minutes") {
-        wait_time = (wait_time * 60000)
+        // Get the ID using the number
+        let id = await us.getID(number).catch(e => {
+            console.log("Error getting ID:", e);
+            return null;
+        });
 
+        if (!id) return;
+
+        // Convert time to milliseconds
+        wait_time = unit === "minutes" ? wait_time * 60000 : wait_time * 3600000;
+        console.log("Time after conversion:", wait_time);
+
+        // Update last message and send confirmation text
+        await us.updateField(id, "Last_Msg", "Alright, see you then!");
+        WA.sendText("Alright, see you then!", number);
+
+        // Prepare options for interactive message
+        const options = ["Start now", "Remind me later"].map(text => ({ text }));
+
+        // Set a timeout to send the interactive message after the wait time
+        setTimeout(() => {
+            console.log("Executing after:", wait_time);
+            WA.sendDynamicInteractiveMsg(options, "Would you like to continue now?", number);
+        }, wait_time);
+    } catch (error) {
+        console.error("Error in waitTime:", error);
     }
-    else {
-        wait_time = (wait_time * 3600000)
-    }
-    console.log("Time after conversion ", wait_time)
-    await us.updateField(id, "Last_Msg", "Alright, see you then!")
-    WA.sendText("Alright, see you then!", number)
-    options = ["Start now", "Remind me later"]
-
-    let data = []
-    for (const row of options) {
-        data.push({
-            text: row
-        })
-    }
-
-    setTimeout(() => {
-        console.log("Executing after ", time)
-        WA.sendDynamicInteractiveMsg(data, "Would you like to continue now?", number)
-    }, wait_time)
-
-
 }
+
 
 async function sendQues(currentDay, module_No, number) {
     try {
@@ -306,332 +299,230 @@ async function sendQues(currentDay, module_No, number) {
 }
 
 
-// store_responses(918779171731, "No")
+// store_responses(917989140045, "No")
 async function store_responses(number, value) {
-    let course_tn = await us.findTable(number)
-    // console.log(value)
-    const records = await base_student("Student").select({
-        filterByFormula: "({Phone} =" + number + ")",
-        view: "Grid view",
+    try {
+        // Retrieve course table name
+        let course_tn = await us.findTable(number);
 
-    }).all(
-    ); records.forEach(async function (record) {
+        // Fetch student records based on phone number
+        const records = await base_student("Student").select({
+            filterByFormula: `({Phone} = "${number}")`,
+            view: "Grid view"
+        }).all();
 
-        let id = record.id
-        let currentModule = record.get("Next Module")
-        let currentDay = record.get("Next Day")
-        let last_msg = await us.findLastMsg(number).then().catch(e => console.log("last msg error " + e))
-        let list_title = await us.find_ContentField("LTitle", currentDay, currentModule, number)
-        let feedback = ["I am not sure", "No, I do not", "Some parts are confusing", "Yes, I do"]
+        // Iterate through each record
+        for (const record of records) {
+            let id = record.id;
+            let currentModule = record.get("Next Module");
+            let currentDay = record.get("Next Day");
 
+            // Fetch the last message sent to the user
+            let last_msg = await us.findLastMsg(number).catch(e => console.log("Last msg error:", e));
+            
+            // Fetch the content title for the current day and module
+            let list_title = await us.find_ContentField("LTitle", currentDay, currentModule, number);
 
-        if (last_msg == "Do you feel like you learnt something today?" ||
-            last_msg == "Did you find this module interesting or informative?"
-        ) {
-            console.log("currentDay ", currentDay)
-            for (i = 0; i < feedback.length; i++) {
-                if (value == feedback[i]) {
-                    console.log("Matched ", feedback[i], value)
-                    let score = 0
-                    switch (value) {
-                        case "I am not sure":
-                            score = 1
-                            break
-                        case "No, I do not":
-                            score = 2
-                            break
-                        case "Some parts are confusing":
-                            score = 3
-                            break
-                        case "Yes, I do":
-                            score = 4
-                            break
+            // Define possible feedback responses
+            let feedback = ["I am not sure", "No, I do not", "Some parts are confusing", "Yes, I do"];
 
+            // Check if the last message requires feedback response
+            if (last_msg === "Do you feel like you learnt something today?" ||
+                last_msg === "Did you find this module interesting or informative?") {
+                
+                console.log("currentDay", currentDay);
+
+                // Match the user's feedback response with predefined options
+                for (let i = 0; i < feedback.length; i++) {
+                    if (value === feedback[i]) {
+                        console.log("Matched", feedback[i], value);
+                        let score = 0;
+
+                        // Assign score based on feedback
+                        switch (value) {
+                            case "I am not sure":
+                                score = 1;
+                                break;
+                            case "No, I do not":
+                                score = 2;
+                                break;
+                            case "Some parts are confusing":
+                                score = 3;
+                                break;
+                            case "Yes, I do":
+                                score = 4;
+                                break;
+                        }
+
+                        // Fetch existing feedback values
+                        let existingValues = await us.findField("Feedback", number).catch(e => console.log("Error finding field:", e));
+                        console.log("existingValues", existingValues);
+
+                        // Append new feedback to existing values
+                        let newValues = existingValues ? `${existingValues} \n\nDay ${currentDay} - ${score}` : `Day ${currentDay} - ${score}`;
+
+                        // Check if feedback for the current day is already recorded
+                        if (existingValues && existingValues.includes(`Day ${currentDay} -`)) {
+                            console.log("1.1 User Feedback already recorded");
+                            await findContent(currentDay, currentModule, number);
+                        } else {
+                            await us.updateField(id, "Feedback", newValues);
+                            console.log("1.2 New User Feedback recorded");
+                            await findContent(currentDay, currentModule, number);
+                            console.log("1. Updating in list feedback");
+                            await us.updateField(id, "Last_Msg", list_title[0]);
+                        }
+                        break;
+                    } else {
+                        console.log("Not Matched", feedback[i], value);
                     }
-                    let existingValues = await us.findField("Feedback", number)
-                    console.log("existingValues ", existingValues)
-
-                    if (existingValues == 0) {
-                        existingValues = ""
-                        newValues = `Day ${currentDay} - ${score}`
-                    }
-                    else {
-                        newValues = `${existingValues} \n\nDay ${currentDay} - ${score}`
-                    }
-
-
-                    if (existingValues.includes(`Day ${currentDay} -`)) {
-                        console.log("1.1  User Feedback already recorded")
-                        await findContent(currentDay, currentModule, number)
-                    }
-
-                    else {
-                        us.updateField(id, "Feedback", newValues).then(async () => {
-                            console.log("1.2  New User Feedback recorded")
-                            await findContent(currentDay, currentModule, number)
-
-                            console.log("1. Updating in list feedback")
-                            await us.updateField(id, "Last_Msg", list_title[0])
-                        })
-                    }
-                    break
                 }
-                else {
-                    console.log("Not Matched ", feedback[i], value)
-                }
+            } else {
+                // Handle correct/incorrect answers for quiz questions
+                let correct_ans = await us.findAns(currentDay, currentModule, number).catch(e => console.log("Error in findAns:", e));
+                console.log("Correct ans", correct_ans);
 
-            }
-        }
-        else {
-            let correct_ans = await us.findAns(currentDay, currentModule, number).then().catch(e => console.log("Error in findAns ", e))
-            console.log("Correct ans ", correct_ans)
+                let existingValues = await us.findField("Question Responses", number).catch(e => console.log("Error finding field:", e));
+                console.log("existingValues", existingValues);
 
-            // let existingValues = await us.findRecord(id)
+                let list = await us.findTitle(currentDay, currentModule, number).catch(e => console.log("Error finding title:", e));
+                let title = list[0];
+                let options = list.slice(1);
+                console.log("Title", title, last_msg);
 
-            let existingValues = await us.findField("Question Responses", number).then().catch(e => console.error(e))
-            console.log("existingValues ", existingValues)
+                if (correct_ans === value || last_msg === "Incorrect") {
+                    // Provide feedback based on the course
+                    if (last_msg === title) {
+                        let items = [
+                            'Congratulations! You got it right. 🥳',
+                            'That’s the correct answer. Yay! 🎉',
+                            'Awesome! Your answer is correct. 🎊',
+                            'Hey, good job! That’s the right answer Woohoo! 🤩',
+                            'Well done! The answer you have chosen is correct. 🎖️'
+                        ];
 
-            let list = await us.findTitle(currentDay, currentModule, number).then().catch(e => console.error(e))
+                        let item = items[Math.floor(Math.random() * items.length)];
+                        if (course_tn === "Financial Literacy" || course_tn === "Web 3") {
+                            WA.sendText(item, number);
+                        }
 
-            let title = list[0]
-            let options = list.filter((v, i) => i !== 0)
-            console.log("Title ", title, last_msg)
+                        console.log(`${title} 1st attempt correct`);
 
-            // await us.updateField(id, "Last_Msg", title).then().catch(e => console.error("update 1.e ", e))
-
-            if (correct_ans == value || last_msg == "Incorrect") {
-                // console.log(last_msg == "Incorrect")
-
-                // if (correct_ans == value) {
-                // await us.updateField(id, "Last_Msg", title).then().catch(e => console.error("update 1.e ", e))
-                // // }
-
-
-                switch (last_msg) {
-                    case title:
-                        switch (course_tn) {
-                            case "Financial Literacy":
-
-                            case "Web 3":
-                                let items = ['Congratulations! You got it right. 🥳',
+                        // Append new question response to existing values
+                        let newValues = existingValues ? `${existingValues} \n\nQ: ${title} \nA: ${value}` : `Q: ${title} \nA: ${value}`;
+                        if (existingValues && existingValues.includes(title)) {
+                            console.log("2.1 List Feedback already recorded");
+                            await findContent(currentDay, currentModule, number);
+                        } else {
+                            await us.updateField(id, "Question Responses", newValues);
+                            console.log("2.2 List New Feedback recorded");
+                            await findContent(currentDay, currentModule, number);
+                            console.log("1. Updating");
+                            await us.updateField(id, "Last_Msg", title);
+                        }
+                    } else if (last_msg === "Incorrect") {
+                        if (course_tn === "Financial Literacy" || course_tn === "Web 3") {
+                            if (correct_ans === value) {
+                                let items = [
+                                    'Congratulations! You got it right. 🥳',
                                     'That’s the correct answer. Yay! 🎉',
                                     'Awesome! Your answer is correct. 🎊',
                                     'Hey, good job! That’s the right answer Woohoo! 🤩',
-                                    'Well done! The answer you have chosen is correct. 🎖️'];
+                                    'Well done! The answer you have chosen is correct. 🎖️'
+                                ];
 
                                 let item = items[Math.floor(Math.random() * items.length)];
-
-                                WA.sendText(item, number)
-                                break;
-
-                        }
-
-                        console.log(`${title} 1st attempt correct`)
-                        if (title.includes(last_msg) || last_msg == title) {
-
-                            for (i = 0; i < options[0].length; i++) {
-                                if (options[0][i] == value) {
-
-                                    if (existingValues == 0) {
-                                        existingValues = ""
-                                        newValues = `Q: ${title} \nA: ${value}`
-                                    }
-                                    else {
-                                        newValues = `${existingValues} \n\nQ: ${title} \nA: ${value}`
-                                    }
-                                    // console.log("existingValues ", existingValues)
-                                    if (existingValues.includes(title)) {
-                                        console.log("2.1 List Feedback already recorded")
-                                        await findContent(currentDay, currentModule, number)
-                                    }
-
-                                    else {
-                                        us.updateField(id, "Question Responses", newValues).then(async () => {
-                                            console.log("2.2 List New Feedback recorded")
-                                            await findContent(currentDay, currentModule, number)
-
-                                            console.log("1. Updating")
-                                            await us.updateField(id, "Last_Msg", title)
-                                        })
-                                    }
-                                }
+                                WA.sendText(item, number);
+                            } else {
+                                WA.sendText(`The correct answer is *${correct_ans}*`, number);
                             }
                         }
-                        else {
-                            console.log("Feedback already stored")
+
+                        let newValues = existingValues ? `${existingValues} \n\nQ: ${title} \nA: ${value}` : `Q: ${title} \nA: ${value}`;
+                        if (existingValues && existingValues.includes(title)) {
+                            console.log("2.1 List Feedback already recorded");
+                            await findContent(currentDay, currentModule, number);
+                        } else {
+                            await us.updateField(id, "Question Responses", newValues);
+                            console.log("2.2 List New Feedback recorded");
+                            await findContent(currentDay, currentModule, number);
+                            console.log("1. Updating");
+                            await us.updateField(id, "Last_Msg", title);
                         }
-                        break
-
-                    case "Incorrect":
-                        switch (course_tn) {
-                            case 'Financial Literacy':
-                                console.log("correct_ans == value ", correct_ans == value, correct_ans, value)
-                                if (correct_ans == value) {
-                                    console.log("correct_ans == value ", correct_ans == value)
-                                    let items = ['Congratulations! You got it right. 🥳',
-                                        'That’s the correct answer. Yay! 🎉',
-                                        'Awesome! Your answer is correct. 🎊',
-                                        'Hey, good job! That’s the right answer Woohoo! 🤩',
-                                        'Well done! The answer you have chosen is correct. 🎖️'];
-
-                                    let item = items[Math.floor(Math.random() * items.length)];
-
-                                    WA.sendText(item, number)
-                                    // break;
-                                }
-                                else {
-                                    WA.sendText(`The correct answer is *${correct_ans}*`, number)
-                                    // break;
-                                }
-                                break;
-                            case "Web 3":
-                                console.log("correct_ans == value ", correct_ans == value, correct_ans, value)
-                                if (correct_ans == value) {
-                                    console.log("correct_ans == value ", correct_ans == value)
-                                    let items = ['Congratulations! You got it right. 🥳',
-                                        'That’s the correct answer. Yay! 🎉',
-                                        'Awesome! Your answer is correct. 🎊',
-                                        'Hey, good job! That’s the right answer Woohoo! 🤩',
-                                        'Well done! The answer you have chosen is correct. 🎖️'];
-
-                                    let item = items[Math.floor(Math.random() * items.length)];
-
-                                    WA.sendText(item, number)
-                                    // break;
-                                }
-                                else {
-                                    WA.sendText(`The correct answer is *${correct_ans}*`, number)
-                                    // break;
-                                }
-                                break;
-
+                    }
+                } else {
+                    // Handle incorrect answers
+                    for (let i = 0; i < options[0].length; i++) {
+                        if (options[0][i] === value) {
+                            WA.sendText("You've entered the wrong answer. Let's try one more time. \n\nSelect the correct option from the list again.", number);
+                            await us.updateField(id, "Last_Msg", "Incorrect");
                         }
-                        // console.log(options, value, options[0][i], value)
-                        for (i = 0; i < options[0].length; i++) {
-                            if (options[0][i] == value) {
-                                // console.log(options[0][i], value)
-
-                                if (existingValues == 0) {
-                                    existingValues = ""
-                                    newValues = `Q: ${title} \nA: ${value}`
-                                }
-                                else {
-                                    newValues = `${existingValues} \n\nQ: ${title} \nA: ${value}`
-                                }
-                                console.log("existingValues ", existingValues)
-                                if (existingValues.includes(title)) {
-                                    console.log("2.1 List Feedback already recorded")
-                                    await findContent(currentDay, currentModule, number)
-                                }
-                                else {
-                                    us.updateField(id, "Question Responses", newValues).then(async () => {
-                                        console.log("2.2 List New Feedback recorded")
-                                        await findContent(currentDay, currentModule, number)
-
-                                        console.log("1. Updating")
-                                        await us.updateField(id, "Last_Msg", title)
-
-                                    })
-                                }
-                            }
-                        }
-                        break
-                }
-            }
-            else {
-                // switch (course_tn) {
-
-                //     case "Web 3":
-                for (i = 0; i < options[0].length; i++) {
-                    if (options[0][i] == value) {
-                        WA.sendText("You've entered the wrong answer. Let's try one more time. \n\nSelect the correct option from the list again.", number)
-                        await us.updateField(id, "Last_Msg", "Incorrect")
-                        // break;
-
                     }
                 }
-
             }
-            // await us.updateField(id, "Last_Msg", "Incorrect")
-
-
-
         }
-    })
+    } catch (error) {
+        console.error("Error in store_responses:", error);
+    }
 }
+
 
 async function store_intResponse(number, value) {
-    let course_tn = await us.findTable(number)
+    try {
+        let course_tn = await us.findTable(number);
 
-    const records = await base_student("Student").select({
-        filterByFormula: "({Phone} =" + number + ")",
-        view: "Grid view",
+        const records = await base_student("Student").select({
+            filterByFormula: `({Phone} = "${number}")`,
+            view: "Grid view",
+        }).all();
 
-    }).all(
-    ); records.forEach(async function (record) {
+        for (const record of records) {
+            let id = record.id;
+            let module_complete = record.get("Module Completed");
+            let currentModule = record.get("Next Module");
+            let currentDay = record.get("Next Day");
+            let last_msg = record.get("Last_Msg");
 
-        let id = record.id
-        let module_complete = record.get("Module Completed")
-        let currentModule = record.get("Next Module")
-        let currentDay = record.get("Next Day")
-        let last_msg = record.get("Last_Msg")
+            let existingValues = await us.findField("Interactive_Responses", number).catch(e => console.log("Error finding field:", e));
+            let list = await us.findInteractive(currentDay, currentModule, number).catch(e => console.error("Error finding interactive content:", e));
 
+            if (list && list.length > 0) {
+                let title = list[0];
+                let options = list.slice(1);
 
-        let existingValues = await us.findField("Interactive_Responses", number).then().catch(e => console.log("e2", e))
-        // let existingValues = await us.findField("Videos Watched", number)
+                console.log("Value:", value);
+                console.log("Last Msg:", existingValues);
 
-        let list = await us.findInteractive(currentDay, currentModule, number).then().catch(e => console.error(e))
+                for (let option of options[0]) {
+                    if (option === value) {
+                        let newValues;
+                        if (!existingValues) {
+                            existingValues = "";
+                            newValues = `${title}\n${value}`;
+                        } else {
+                            newValues = `${existingValues}\n\n${title} ${value}`;
+                        }
 
-        // let title = await us.findTitle(currentDay, currentModule, number).then().catch(e => console.error(e))
-        // if (title != undefined) {
-        let title = ""
-        if (list != undefined) {
-            title = list[0]
-            console.log(title)
-
-
-
-            // let title = list[0]
-            let options = list.filter((v, i) => i !== 0)
-
-            console.log("Value ", value)
-            console.log("Last Msg = ", existingValues)
-            console.log()
-
-            for (i = 0; i < options[0].length; i++) {
-                if (options[0][i] == value) {
-                    if (existingValues == 0) {
-                        // console.log("existingValues", existingValues)
-                        existingValues = ""
-                        newValues = title + "\n" + value
-
+                        if (existingValues.includes(title)) {
+                            console.log("Interactive Feedback already recorded");
+                            await find_IntContent(currentDay, currentModule, number);
+                        } else {
+                            await us.updateField(id, "Interactive_Responses", newValues);
+                            console.log("New Interactive Feedback recorded");
+                            await find_IntContent(currentDay, currentModule, number);
+                        }
+                        break;
                     }
-                    else {
-                        newValues = existingValues + "\n\n" + title + value
-                    }
-
-                    if (existingValues.includes(title)) {
-                        console.log("Interactive Feedback already recorded")
-                        await find_IntContent(currentDay, currentModule, number)
-                    }
-                    else {
-                        us.updateField(id, "Interactive_Responses", newValues).then(async () => {
-                            console.log("New Interactive Feedback recorded")
-                            await find_IntContent(currentDay, currentModule, number)
-
-                        })
-                    }
-                    break
-
                 }
+            } else {
+                console.log("List empty");
             }
         }
-        else {
-            console.log("List empty")
-        }
-
-    })
+    } catch (error) {
+        console.error("Error in store_intResponse:", error);
+    }
 }
+
 
 async function store_quesResponse(number, value) {
     //let course_tn = await us.findTable(number)
