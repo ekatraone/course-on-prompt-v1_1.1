@@ -67,86 +67,67 @@ async function markDayComplete(number) {
 
 // Find  current day content and called on in sendContent method
 async function findDay(currentDay, number) {
-    let course_tn = await us.findTable(number)
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + currentDay + ")",
-        view: "Grid view",
+    try {
+        let course_tn = await us.findTable(number);
+        const records = await course_base(course_tn).select({
+            filterByFormula: `({Day} = ${currentDay})`,
+            view: "Grid view"
+        }).all();
 
-    }).all();
-    records.forEach(async function (record) {
-        //console.log("Entered findDay module")
-        let day = record.get("Day")
-        let id = await us.getID(number).then().catch(e => console.log(e))
+        for (const record of records) {
+            let day = record.get("Day");
+            let id = await us.getID(number);
 
-        total_days = await us.totalDays(number)
-        if (currentDay == total_days) {
-            const hTxt = `Congratulations on completing Day ${day}!\n\nYour course is complete.🎊 `
-            bTxt = `_powered by ekatra.one_`
-            const btnTxt = "Finish Day " + day
+            let total_days = await us.totalDays(number);
+            let hTxt, bTxt;
 
-            //console.log("5. Updating last message")
-            us.updateField(id, "Last_Msg", hTxt)
+            if (currentDay === total_days) {
+                hTxt = `Congratulations on completing Day ${day}!\n\nYour course is complete.🎊 `;
+                bTxt = `_powered by ekatra.one_`;
 
-            WA.sendText(`${hTxt} \n${bTxt}`, number)
-            markDayComplete(number).then().catch(e => console.log("Mark day error 1 : ", e))
+                await us.updateField(id, "Last_Msg", hTxt);
+                WA.sendText(`${hTxt} \n${bTxt}`, number);
+                await markDayComplete(number);
 
-            if (course_tn == "Web 3") {
-                setTimeout(() => {
-                    WA.sendText(`Would you like another learner to join you? Invite your friends to take the course! 
-                
-https://bit.ly/Web3_Referral`, number)
-                }, 5000)
+                sendReferralMessage(course_tn, number);
+            } else {
+                let next_day = day + 1;
+                hTxt = `Congratulations on completing Day ${day}! `;
+                bTxt = `You will receive Day ${next_day} modules tomorrow. \n\n_powered by ekatra.one_`;
+
+                await us.updateField(id, "Last_Msg", hTxt);
+                WA.sendText(`${hTxt} \n${bTxt}`, number);
+                await markDayComplete(number);
+
+                sendReferralMessage(course_tn, number);
             }
-            else if (course_tn == "Financial Literacy") {
-                setTimeout(() => {
-                    WA.sendText(`Would you like another learner to join you? Invite your friends to take the course! 
-                
-https://bit.ly/Financial_Literacy_Referral`, number)
-                }, 5000)
-            }
-
-            // WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
-            // }
-
         }
-        else {
-
-            let next_day = day + 1
-            const hTxt = `Congratulations on completing Day ${day}! `
-            const bTxt = `You will receive Day ${next_day} modules tomorrow. \n\n_powered by ekatra.one_`
-            const btnTxt = "Finish Day " + day
-
-            //console.log("6. Updating last message")
-            us.updateField(id, "Last_Msg", hTxt)
-
-            // setTimeout(() => {
-            //console.log("2. Delay of Finish Day")
-            WA.sendText(`${hTxt} \n${bTxt}`, number)
-
-            markDayComplete(number).then().catch(e => console.log("Mark day error 1 : ", e))
-            // WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
-            if (course_tn == "Web 3") {
-                setTimeout(() => {
-                    WA.sendText(`Would you like another learner to join you? Invite your friends to take the course! 
-                
-https://bit.ly/Web3_Referral`, number)
-                }, 5000)
-            }
-            else if (course_tn == "Financial Literacy") {
-                setTimeout(() => {
-                    WA.sendText(`Would you like another learner to join you? Invite your friends to take the course! 
-                
-https://bit.ly/Financial_Literacy_Referral`, number)
-                }, 5000)
-            }
-
-
-        }
-
-
-
-    })
+    } catch (error) {
+        console.error("Error in findDay:", error);
+    }
 }
+
+async function sendReferralMessage(course_tn, number) {
+    let referralMessage;
+    switch (course_tn) {
+        case "Web 3":
+            referralMessage = `Would you like another learner to join you? Invite your friends to take the course! 
+            
+https://bit.ly/Web3_Referral`;
+            break;
+        case "Financial Literacy":
+            referralMessage = `Would you like another learner to join you? Invite your friends to take the course! 
+            
+https://bit.ly/Financial_Literacy_Referral`;
+            break;
+        default:
+            return;
+    }
+    setTimeout(() => {
+        WA.sendText(referralMessage, number);
+    }, 5000);
+}
+
 
 async function sendList(currentDay, module_No, number) {
     try {
