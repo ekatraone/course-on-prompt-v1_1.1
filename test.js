@@ -86,7 +86,7 @@ async function findDay(currentDay, number) {
                 hTxt = `Congratulations on completing Day ${day}!\n\nYour course is complete.🎊 `;
                 bTxt = `_powered by ekatra.one_`;
 
-                console.log("5. Updating last message");
+                console.log("test:89 - 5. Updating last message");
                 await us.updateField(id, "Last_Msg", hTxt);
                 WA.sendText(`${hTxt} \n${bTxt}`, number);
                 await markDayComplete(number);
@@ -94,7 +94,7 @@ async function findDay(currentDay, number) {
                 if (course_tn === "Web 3") {
                     setTimeout(() => {
                         WA.sendText(`Would you like another learner to join you? Invite your friends to take the course! 
-                        
+  
 https://bit.ly/Web3_Referral`, number);
                     }, 5000);
                 } else if (course_tn === "Financial Literacy") {

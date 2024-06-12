@@ -36,153 +36,154 @@ async function updateField(id, field_name, updatedValue) {
 
 
 async function getID(number) {
+  console.log("airtable_methods: 39 -get ID");
+  try {
+      const course_table = await base_student('Student').select({
+          filterByFormula: `({Phone} = "${number}")`,
+          view: "Grid view"
+      }).all();
 
-    console.log("airtable_methods: 42 -get ID  ")
-    return new Promise(async function (resolve, reject) {
-        const course_table = await base_student('Student').select({
-            filterByFormula: "({Phone} = " + number + ")",
-            view: "Grid view"
-        }).all();
+      if (course_table.length === 0) {
+          throw new Error("No records found");
+      }
 
-        course_table.forEach(function (record) {
-            let id = record.id
-            resolve(id)
-            // reject("Error")
-        })
-    })
-
+      const id = course_table[0].id;
+      return id;
+  } catch (error) {
+      console.error("Error:", error);
+      throw new Error("Error retrieving ID");
+  }
 }
 
 const totalDays = async (number) => {
+  try {
+      const course_tn = await findTable(number);
+      const course_table = await course_base(course_tn).select({
+          fields: ["Day"],
+          view: "Grid view"
+      }).all();
 
-    var course_tn = await findTable(number)
-    const course_table = await course_base(course_tn).select({
-        //filterByFormula: "({Phone} = " + number + ")",
-        fields: ["Day"],
-        view: "Grid view"
-    }).all();
-    return new Promise((resolve, reject) => {
-        count = 0
+      const count = course_table.length;
+      console.log(count);
+      return count;
+  } catch (error) {
+      console.error("Error:", error);
+      throw new Error("Error calculating total days");
+  }
+};
 
-        course_table.forEach(function (record) {
-            count += 1
-
-        })
-        console.log(count)
-        resolve(count)
-        reject("Error")
-    })
-}
 
 const findTable = async (number) => {
+  try {
+      const course_table = await base_student('Student').select({
+          filterByFormula: `({Phone} = "${number}")`,
+          view: "Grid view"
+      }).all();
 
-    // filterByFormula: "({Phone} = " + number + ")",
-    const course_table = await base_student('Student').select({
-        filterByFormula: "({Phone} = " + number + ")",
-        view: "Grid view"
-    }).all();
-    // console.log("airtable_methods: 86"- course_table)
-    return new Promise((resolve, reject) => {
-        course_tn = ""
-        course_table.forEach(function (record) {
-            course_tn = record.get("Topic")
+      if (course_table.length === 0) {
+          throw new Error("No records found");
+      }
 
-            resolve(course_tn)
-            reject("error")
-
-        })
-    });
-    //  console.log("airtable_methods: 97");
-}
+      const course_tn = course_table[0].get("Topic");
+      return course_tn;
+  } catch (error) {
+      console.error("Error:", error);
+      throw new Error("Error retrieving table");
+  }
+};
 
 
 const findRecord = async (id) => {
-    return new Promise((resolve, reject) => {
-        base_student('Student').find(id, function (err, record) {
-            if (err) { console.error(err); return; }
-            field_name = "Question Responses"
-            resolve(record.fields.field_name);
-        });
-    }
-    )
-}
+  try {
+      const record = await base_student('Student').find(id);
+      const fieldName = "Question Responses";
+      return record.fields[fieldName];
+  } catch (err) {
+      console.error("Error:", err);
+      throw new Error("Error retrieving record");
+  }
+};
+
 
 const findQuesRecord = async (id) => {
-    return new Promise((resolve, reject) => {
-        base_student('Student').find(id, function (err, record) {
-            if (err) { console.error(err); return; }
+  try {
+      const record = await base_student('Student').find(id);
+      return record.fields.Responses;
+  } catch (err) {
+      console.error("Error:", err);
+      throw new Error("Error retrieving record");
+  }
+};
 
-            resolve(record.fields.Responses);
-        });
-    }
-    )
-}
 
 const findTitle = async (currentDay, module_no, number) => {
-    let course_tn = await findTable(number)
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + currentDay + ")",
-        view: "Grid view",
+  try {
+      const course_tn = await findTable(number);
+      const records = await course_base(course_tn).select({
+          filterByFormula: `({Day} = ${currentDay})`,
+          view: "Grid view"
+      }).all();
 
-    }).all(
-    );
-    return new Promise((resolve, reject) => {
-        records.forEach(function (record) {
-            let title = record.get('Module ' + module_no + ' LTitle');
-            let options = record.get('Module ' + module_no + ' List');
-            if (title !== undefined) {
-                console.log(title, options.split("\n"))
-                resolve([title, options.split("\n")])
+      for (const record of records) {
+          const title = record.get(`Module ${module_no} LTitle`);
+          const options = record.get(`Module ${module_no} List`);
+          if (title !== undefined) {
+              console.log(title, options.split("\n"));
+              return [title, options.split("\n")];
+          }
+      }
+      return [0, 0];
+  } catch (error) {
+      console.error("Error:", error);
+      throw new Error("Error finding title");
+  }
+};
 
-            }
-            else {
-                resolve([0, 0])
-            }
-        })
-    })
-}
 
 const findInteractive = async (currentDay, module_no, number) => {
+  try {
+      const course_tn = await findTable(number);
+      const records = await course_base(course_tn).select({
+          filterByFormula: `({Day} = ${currentDay})`,
+          view: "Grid view"
+      }).all();
 
-    var course_tn = await findTable(number)
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + currentDay + ")",
-        view: "Grid view",
+      for (const record of records) {
+          const body = record.get(`Module ${module_no} iBody`);
+          const buttons = record.get(`Module ${module_no} iButtons`);
+          if (body !== undefined) {
+              return [body, buttons.split("\n")];
+          }
+      }
+      return [0, []]; // Return default values if no interactive content found
+  } catch (error) {
+      console.error("Error:", error);
+      throw new Error("Error finding interactive content");
+  }
+};
 
-    }).all(
-    );
-    return new Promise((resolve, reject) => {
-        records.forEach(function (record) {
-            let body = record.get('Module ' + module_no + ' iBody');
-            let buttons = record.get('Module ' + module_no + ' iButtons');
-            if (body !== undefined) {
-                resolve([body, buttons.split("\n")])
-                reject("error")
-            }
-        })
-    })
-}
 
 const findQuestion = async (currentDay, module_no, number) => {
+  try {
+      const course_tn = await findTable(number);
+      const records = await course_base(course_tn).select({
+          filterByFormula: `({Day} = ${currentDay})`,
+          view: "Grid view"
+      }).all();
 
-    var course_tn = await findTable(number)
-    const records = await course_base(course_tn).select({
-        filterByFormula: "({Day} =" + currentDay + ")",
-        view: "Grid view",
+      for (const record of records) {
+          const body = record.get(`Module ${module_no} Question`);
+          if (body !== undefined) {
+              return body;
+          }
+      }
+      return null; // Return null if no question found
+  } catch (error) {
+      console.error("Error:", error);
+      throw new Error("Error finding question");
+  }
+};
 
-    }).all(
-    );
-    return new Promise((resolve, reject) => {
-        records.forEach(function (record) {
-            let body = record.get('Module ' + module_no + ' Question');
-            // let buttons = record.get('Module ' + module_no + ' iButtons');
-            if (body !== undefined) {
-                resolve(body)
-                reject("error")
-            }
-        })
-    })
-}
 
 async function findLastMsg(number) {
     try {
