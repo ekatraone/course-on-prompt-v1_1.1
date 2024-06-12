@@ -21,10 +21,10 @@ const createDoc = async (chat_id, session_prompt) => {
     chatlog.save((err) => {
         if (err) {
 
-            console.log("Error creating document " + err);
+            //console.log("Error creating document " + err);
         }
         else {
-            console.log("Successfully Registered " + chat_id)
+            //console.log("Successfully Registered " + chat_id)
         }
     })
 }
@@ -39,12 +39,12 @@ const updateDoc = async (chat_id, value) => {
 
         }, async (err, record) => {
             if (err) {
-                console.log("update error ", err);
+                //console.log("update error ", err);
             }
             if (record) {
                 chatSize = await findRecord(chat_id)
                 const size = BSON.calculateObjectSize(chatSize.chatLog);
-                console.log(`Size of chat ${chat_id} = ${size}`);
+                //console.log(`Size of chat ${chat_id} = ${size}`);
             }
         })
 }
@@ -58,11 +58,11 @@ const updateStatus = async (chat_id, value) => {
 
         }, async (err, record) => {
             if (err) {
-                console.log("update error ", err);
+                //console.log("update error ", err);
             }
             if (record) {
 
-                // console.log(record)
+                // //console.log(record)
                 return record
             }
         })
@@ -75,7 +75,7 @@ async function findRecord(id) {
 
         chatLog.find({ userID: id }, (err, record) => {
             if (err) {
-                console.log(err);
+                //console.log(err);
             }
             if (record) {
                 let len = record.length
@@ -85,7 +85,7 @@ async function findRecord(id) {
                 else {
                     record.forEach(function (chat) {
                         resolve(chat)
-                        // console.log(chat)
+                        // //console.log(chat)
                     })
                 }
 

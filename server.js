@@ -26,7 +26,7 @@ MONGO_URL = `mongodb://localhost:27017`
 webApp.post('/cop', async (req, res) => {
     try {
       if (Object.keys(req.body).length !== 0) {
-        console.log("Request ", req.body);
+        //console.log("Request ", req.body);
   
         const senderID = req.body.waId;
         const keyword = req.body.text;
@@ -48,12 +48,12 @@ webApp.post('/cop', async (req, res) => {
   
             if (last_msg !== undefined) {
               if (last_msg.includes("Would you like to receive a certificate confirming the completion of your course?") || last_msg === "document") {
-                console.log("Updating certificate keyword");
-                console.log("last_msg 1 ", last_msg, keyword);
+                //console.log("Updating certificate keyword");
+                //console.log("last_msg 1 ", last_msg, keyword);
   
                 if (keyword === "Yes!") {
                   const name = await airtable.findField("Name", senderID);
-                  console.log(`Sending certificate to ${name}`);
+                  //console.log(`Sending certificate to ${name}`);
                   const certificate_pdf = await cert.createCertificate(name, course);
   
                   WA.sendText(`Kudos for the efforts you have made.\nBest wishes fellow learner, ${name}`, senderID);
@@ -76,7 +76,7 @@ webApp.post('/cop', async (req, res) => {
   
           return res.status(200).send("Success");
         } else {
-          console.log("Response");
+          //console.log("Response");
           return res.status(200).send("Success");
         }
       }
@@ -87,9 +87,9 @@ webApp.post('/cop', async (req, res) => {
   });
   
 webApp.get("/ping", async (req, res) => {
-    console.log("Pinging whatsapp server")
+    //console.log("Pinging whatsapp server")
     course_approval.course_approval()
-    console.log("OK")
+    //console.log("OK")
     res.send("ok")
 })
 

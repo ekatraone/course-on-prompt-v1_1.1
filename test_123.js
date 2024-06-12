@@ -24,12 +24,12 @@ async function create_record(record_array, course_name) {
 
     result = axios.request(config)
         .then((response) => {
-            console.log(response.data);
+            //console.log(response.data);
             return response.status
 
         })
         .catch((error) => {
-            console.log(error.response.data);
+            //console.log(error.response.data);
             return error.response.data
         });
     return result
@@ -66,7 +66,7 @@ let module_details = [
     }
   ];
 
-//   console.log( JSON.stringify({
+//   //console.log( JSON.stringify({
 //     "records": module_details
 // }));
   

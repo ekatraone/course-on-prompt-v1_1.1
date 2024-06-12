@@ -26,7 +26,7 @@ async function markDayComplete(number) {
 
         // Process each student record
         for (const record of records_Student) {
-            console.log("Entered markDayComplete");
+            //console.log("Entered markDayComplete");
 
             let name = record.get("Name");
             let course = record.get("Topic");
@@ -44,18 +44,18 @@ async function markDayComplete(number) {
                         us.updateField(id, "Module Completed", 0)
                     ]);
 
-                    console.log(`Completed Day ${comp_day} of ${total_days}`);
-                    console.log(`Next day is ${nextDay}, Total days are ${total_days}, Next day equals total days plus one: ${nextDay == total_days + 1}`);
+                    //console.log(`Completed Day ${comp_day} of ${total_days}`);
+                    //console.log(`Next day is ${nextDay}, Total days are ${total_days}, Next day equals total days plus one: ${nextDay == total_days + 1}`);
 
                     // Check if next day is beyond total days to trigger outro flow
                     if (nextDay === total_days + 1) {
-                        console.log(`Executing Outro for ${name} on day ${nextDay}`);
+                        //console.log(`Executing Outro for ${name} on day ${nextDay}`);
                         setTimeout(async () => {
                             await outro.outro_flow(total_days, number);
                         }, 4000);
                     }
                 } catch (e) {
-                    console.log(`Error while updating fields for complete day: ${e}`);
+                    //console.log(`Error while updating fields for complete day: ${e}`);
                 }
             }
         }
@@ -149,11 +149,11 @@ async function sendList(currentDay, module_No, number) {
         const module_list = record.get(`Module ${module_No} List`);
         const last_msg = record.get('Last_Msg');
   
-        console.log('Executing List');
+        //console.log('Executing List');
         const options = module_list.split('\n').filter(Boolean);
         const d = options.map((row) => ({ title: row }));
   
-        console.log('Updating Last_Msg');
+        //console.log('Updating Last_Msg');
         if (last_msg !== 'Incorrect') {
           await us.updateField(id, 'Last_Msg', module_title);
         }
@@ -199,7 +199,7 @@ async function sendIMsg(currentDay, module_No, number) {
 
 async function sendTimeIMsg(number) {
 
-    console.log("Executing Time Interactive ")
+    //console.log("Executing Time Interactive ")
     options = ["30 minutes", "1 hour", "2 hour"]
 
     let data = []
@@ -223,7 +223,7 @@ async function waitTime(time, number) {
 
         // Get the ID using the number
         let id = await us.getID(number).catch(e => {
-            console.log("Error getting ID:", e);
+            //console.log("Error getting ID:", e);
             return null;
         });
 
@@ -231,7 +231,7 @@ async function waitTime(time, number) {
 
         // Convert time to milliseconds
         wait_time = unit === "minutes" ? wait_time * 60000 : wait_time * 3600000;
-        console.log("Time after conversion:", wait_time);
+        //console.log("Time after conversion:", wait_time);
 
         // Update last message and send confirmation text
         await us.updateField(id, "Last_Msg", "Alright, see you then!");
@@ -242,7 +242,7 @@ async function waitTime(time, number) {
 
         // Set a timeout to send the interactive message after the wait time
         setTimeout(() => {
-            console.log("Executing after:", wait_time);
+            //console.log("Executing after:", wait_time);
             WA.sendDynamicInteractiveMsg(options, "Would you like to continue now?", number);
         }, wait_time);
     } catch (error) {
@@ -264,7 +264,7 @@ async function sendQues(currentDay, module_No, number) {
         for (const record of records) {
             const module_ques = record.get(`Module ${module_No} Question`);
             if (module_ques) {
-                console.log("test:320 - Executing Question");
+                //console.log("test:320 - Executing Question");
 
                 await us.updateField(id, "Last_Msg", "Q: " + module_ques);
 
@@ -276,7 +276,7 @@ async function sendQues(currentDay, module_No, number) {
                     WA.sendText("⬇⁣", number);
                 }, 3000);
             } else {
-                console.log(`test:332 - No question found for Module ${module_No}`);
+                //console.log(`test:332 - No question found for Module ${module_No}`);
             }
         }
     } catch (error) {
@@ -316,12 +316,12 @@ async function store_responses(number, value) {
             if (last_msg === "Do you feel like you learnt something today?" ||
                 last_msg === "Did you find this module interesting or informative?") {
                 
-                console.log("currentDay", currentDay);
+                //console.log("currentDay", currentDay);
 
                 // Match the user's feedback response with predefined options
                 for (let i = 0; i < feedback.length; i++) {
                     if (value === feedback[i]) {
-                        console.log("Matched", feedback[i], value);
+                        //console.log("Matched", feedback[i], value);
                         let score = 0;
 
                         // Assign score based on feedback
@@ -342,39 +342,39 @@ async function store_responses(number, value) {
 
                         // Fetch existing feedback values
                         let existingValues = await us.findField("Feedback", number).catch(e => console.log("Error finding field:", e));
-                        console.log("existingValues", existingValues);
+                        //console.log("existingValues", existingValues);
 
                         // Append new feedback to existing values
                         let newValues = existingValues ? `${existingValues} \n\nDay ${currentDay} - ${score}` : `Day ${currentDay} - ${score}`;
 
                         // Check if feedback for the current day is already recorded
                         if (existingValues && existingValues.includes(`Day ${currentDay} -`)) {
-                            console.log("1.1 User Feedback already recorded");
+                            //console.log("1.1 User Feedback already recorded");
                             await findContent(currentDay, currentModule, number);
                         } else {
                             await us.updateField(id, "Feedback", newValues);
-                            console.log("1.2 New User Feedback recorded");
+                            //console.log("1.2 New User Feedback recorded");
                             await findContent(currentDay, currentModule, number);
-                            console.log("1. Updating in list feedback");
+                            //console.log("1. Updating in list feedback");
                             await us.updateField(id, "Last_Msg", list_title[0]);
                         }
                         break;
                     } else {
-                        console.log("Not Matched", feedback[i], value);
+                        //console.log("Not Matched", feedback[i], value);
                     }
                 }
             } else {
                 // Handle correct/incorrect answers for quiz questions
                 let correct_ans = await us.findAns(currentDay, currentModule, number).catch(e => console.log("Error in findAns:", e));
-                console.log("Correct ans", correct_ans);
+                //console.log("Correct ans", correct_ans);
 
                 let existingValues = await us.findField("Question Responses", number).catch(e => console.log("Error finding field:", e));
-                console.log("existingValues", existingValues);
+                //console.log("existingValues", existingValues);
 
                 let list = await us.findTitle(currentDay, currentModule, number).catch(e => console.log("Error finding title:", e));
                 let title = list[0];
                 let options = list.slice(1);
-                console.log("Title", title, last_msg);
+                //console.log("Title", title, last_msg);
 
                 if (correct_ans === value || last_msg === "Incorrect") {
                     // Provide feedback based on the course
@@ -392,18 +392,18 @@ async function store_responses(number, value) {
                             WA.sendText(item, number);
                         }
 
-                        console.log(`${title} 1st attempt correct`);
+                        //console.log(`${title} 1st attempt correct`);
 
                         // Append new question response to existing values
                         let newValues = existingValues ? `${existingValues} \n\nQ: ${title} \nA: ${value}` : `Q: ${title} \nA: ${value}`;
                         if (existingValues && existingValues.includes(title)) {
-                            console.log("2.1 List Feedback already recorded");
+                            //console.log("2.1 List Feedback already recorded");
                             await findContent(currentDay, currentModule, number);
                         } else {
                             await us.updateField(id, "Question Responses", newValues);
-                            console.log("2.2 List New Feedback recorded");
+                            //console.log("2.2 List New Feedback recorded");
                             await findContent(currentDay, currentModule, number);
-                            console.log("1. Updating");
+                            //console.log("1. Updating");
                             await us.updateField(id, "Last_Msg", title);
                         }
                     } else if (last_msg === "Incorrect") {
@@ -426,13 +426,13 @@ async function store_responses(number, value) {
 
                         let newValues = existingValues ? `${existingValues} \n\nQ: ${title} \nA: ${value}` : `Q: ${title} \nA: ${value}`;
                         if (existingValues && existingValues.includes(title)) {
-                            console.log("2.1 List Feedback already recorded");
+                            //console.log("2.1 List Feedback already recorded");
                             await findContent(currentDay, currentModule, number);
                         } else {
                             await us.updateField(id, "Question Responses", newValues);
-                            console.log("2.2 List New Feedback recorded");
+                            //console.log("2.2 List New Feedback recorded");
                             await findContent(currentDay, currentModule, number);
-                            console.log("1. Updating");
+                            //console.log("1. Updating");
                             await us.updateField(id, "Last_Msg", title);
                         }
                     }
@@ -476,8 +476,8 @@ async function store_intResponse(number, value) {
                 let title = list[0];
                 let options = list.slice(1);
 
-                console.log("Value:", value);
-                console.log("Last Msg:", existingValues);
+                //console.log("Value:", value);
+                //console.log("Last Msg:", existingValues);
 
                 for (let option of options[0]) {
                     if (option === value) {
@@ -490,18 +490,18 @@ async function store_intResponse(number, value) {
                         }
 
                         if (existingValues.includes(title)) {
-                            console.log("Interactive Feedback already recorded");
+                            //console.log("Interactive Feedback already recorded");
                             await find_IntContent(currentDay, currentModule, number);
                         } else {
                             await us.updateField(id, "Interactive_Responses", newValues);
-                            console.log("New Interactive Feedback recorded");
+                            //console.log("New Interactive Feedback recorded");
                             await find_IntContent(currentDay, currentModule, number);
                         }
                         break;
                     }
                 }
             } else {
-                console.log("List empty");
+                //console.log("List empty");
             }
         }
     } catch (error) {
@@ -531,7 +531,7 @@ async function store_quesResponse(number, value) {
             // let scnd_last = await WA.getMessages(number, 3)
 
             last_msg = last_msg.replace("Q: ", "")
-            console.log("Last msg and question in store_quesResponse ", last_msg, ques)
+            //console.log("Last msg and question in store_quesResponse ", last_msg, ques)
 
             if (last_msg == ques) {
 
@@ -539,11 +539,11 @@ async function store_quesResponse(number, value) {
 
                 let existingValues = await us.findQuesRecord(id)
 
-                console.log("ques -  ", ques,)
+                //console.log("ques -  ", ques,)
 
                 if (ques != undefined) {
                     if (existingValues == undefined) {
-                        console.log("existingValues", existingValues)
+                        //console.log("existingValues", existingValues)
 
                         existingValues = ""
                         newValues = `Q: ${ques} \nA: ${value}`
@@ -551,7 +551,7 @@ async function store_quesResponse(number, value) {
 
                     }
                     else {
-                        console.log("existingValues")
+                        //console.log("existingValues")
                         // newValues = existingValues + "\n\n" + ques + value
                         newValues = `${existingValues} \n\nQ: ${ques} \nA: ${value}`
 
@@ -559,12 +559,12 @@ async function store_quesResponse(number, value) {
 
                     if (existingValues.includes(ques)) {
 
-                        console.log("third_last", last_msg)
+                        //console.log("third_last", last_msg)
                         last_msg = last_msg
 
                         last_msg = last_msg.replace("\n\nShare your thoughts!", " ")
 
-                        console.log(last_msg == ques)
+                        //console.log(last_msg == ques)
 
                         // let prev_msg = await WA.getMessages(number, 1)
 
@@ -572,7 +572,7 @@ async function store_quesResponse(number, value) {
 
 
                             try {
-                                console.log("1.1.2 Feedback already recorded")
+                                //console.log("1.1.2 Feedback already recorded")
                                 await find_QContent(currentDay, currentModule, number).then().catch(e => console.log("Error 1.1.2 Feedback ", e))
                             }
                             catch (e) {
@@ -582,13 +582,13 @@ async function store_quesResponse(number, value) {
                         }
 
                         else {
-                            console.log("1.2 Feedback already recorded")
+                            //console.log("1.2 Feedback already recorded")
                             await find_QContent(currentDay, currentModule, number)
                         }
                     }
                     else {
                         us.updateField(id, "Responses", newValues).then(async () => {
-                            console.log("3. New Feedback recorded")
+                            //console.log("3. New Feedback recorded")
                             await find_QContent(currentDay, currentModule, number)
 
 
@@ -598,7 +598,7 @@ async function store_quesResponse(number, value) {
                 }
             }
             else {
-                console.log("No ques")
+                //console.log("No ques")
             }
 
 
@@ -622,9 +622,9 @@ async function findContent(currentDay, module_No, number) {
             for (let i = module_No + 1; i <= 9; i++) {
                 let module_text = record.get("Module " + i + " Text")
                 let module_list = record.get("Module " + i + " LTitle")
-                console.log("1. After ", i)
+                //console.log("1. After ", i)
                 if (module_text == undefined && !module_list) {
-                    console.log(module_text, module_list)
+                    //console.log(module_text, module_list)
                     if (i >= 9) {
                         await markModuleComplete_v2(i, number).then().catch(error => console.log("v2 ", error))
                     }
@@ -635,7 +635,7 @@ async function findContent(currentDay, module_No, number) {
                     const bTxt = `Click Next!`
                     const btnTxt = "Yes, Next"
                     setTimeout(() => {
-                        console.log("2. Delay of Finish Interactive Button - find_QContent")
+                        //console.log("2. Delay of Finish Interactive Button - find_QContent")
                         us.updateField(id, "Last_Msg", btnTxt)
                         WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
                     }, 1000)
@@ -662,10 +662,10 @@ async function find_IntContent(currentDay, module_No, number) {
         let module_title = record.get("Module " + module_No + " LTitle")
         let id = await us.getID(number).then().catch(e => console.log(e))
 
-        console.log(module_title)
+        //console.log(module_title)
 
         if (module_title != undefined) {
-            console.log("List not empty in findContent")
+            //console.log("List not empty in findContent")
             await sendList(currentDay, module_No, number)
 
         }
@@ -674,9 +674,9 @@ async function find_IntContent(currentDay, module_No, number) {
                 for (let i = module_No + 1; i <= 7; i++) {
                     let module_text = record.get("Module " + i + " Text")
                     let module_list = record.get("Module " + i + " LTitle")
-                    console.log("2. After ", i)
+                    //console.log("2. After ", i)
                     if (module_text == undefined && !module_list) {
-                        console.log(module_text, module_list)
+                        //console.log(module_text, module_list)
                         if (i >= 5) {
                             await markModuleComplete_v2(i, number).then().catch(error => console.log("v2 ", error))
                         }
@@ -687,7 +687,7 @@ async function find_IntContent(currentDay, module_No, number) {
                         const bTxt = ` `
                         const btnTxt = "Yes, Next"
                         // setTimeout(() => {
-                        console.log("2. Delay of Finish Interactive Button - find_QContent")
+                        //console.log("2. Delay of Finish Interactive Button - find_QContent")
                         us.updateField(id, "Last_Msg", btnTxt)
                         WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
                         // }, 1000)
@@ -722,13 +722,13 @@ async function find_QContent(currentDay, module_No, number) {
 
         let id = await us.getID(number).then().catch(e => console.log(e))
 
-        console.log(module_No)
+        //console.log(module_No)
         let interactive_body = record.get("Module " + nm + " iBody")
-        // console.log("module_No ", interactive_body)
+        // //console.log("module_No ", interactive_body)
 
 
         if (!!module_link) {
-            console.log("Module link not empty ")
+            //console.log("Module link not empty ")
 
             setTimeout(() => {
                 data = module_link
@@ -740,10 +740,10 @@ async function find_QContent(currentDay, module_No, number) {
             //     // 
         }
 
-        console.log("Before ", module_No)
+        //console.log("Before ", module_No)
         if (interactive_body) {
 
-            //await markModuleComplete_v2(module_No, number).then().catch(error => console.log("v2 ", error))
+            //await markModuleComplete_v2(module_No, number).then().catch(error => //console.log("v2 ", error))
             us.updateField(id, "Next Module", nm)
             us.updateField(id, "Module Completed", module_No)
             await sendIMsg(currentDay, nm, number)
@@ -752,13 +752,13 @@ async function find_QContent(currentDay, module_No, number) {
             setTimeout(async () => {
                 for (let i = module_No + 1; i <= 7; i++) {
                     let module_text = record.get("Module " + i + " Text")
-                    console.log("3. After ", i)
+                    //console.log("3. After ", i)
                     let module_list = record.get("Module " + i + " LTitle")
 
 
                     if (module_text == undefined && !module_list) {
 
-                        console.log(module_text)
+                        //console.log(module_text)
 
 
                         if (i >= 5) {
@@ -775,7 +775,7 @@ async function find_QContent(currentDay, module_No, number) {
                                 const bTxt = `नेक्स्ट पर क्लिक करें`
                                 const btnTxt = "नेक्स्ट"
                                 // setTimeout(() => {
-                                console.log("3. Delay of Finish Interactive Button - find_QContent")
+                                //console.log("3. Delay of Finish Interactive Button - find_QContent")
                                 us.updateField(id, "Last_Msg", btnTxt)
                                 WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
                                 // }, 1000)
@@ -789,7 +789,7 @@ async function find_QContent(currentDay, module_No, number) {
                             const btnTxt = "Yes, Next"
 
                             setTimeout(() => {
-                                console.log("1. Delay of Finish Interactive Button - find_QContent")
+                                //console.log("1. Delay of Finish Interactive Button - find_QContent")
                                 us.updateField(id, "Last_Msg", btnTxt)
                                 WA.sendInteractiveButtonsMessage(hTxt, bTxt, btnTxt, number)
                             }, 1000)
@@ -808,7 +808,7 @@ async function find_QContent(currentDay, module_No, number) {
 async function findModule(currentDay, module_No, number) {
     try {
         const course_tn = await us.findTable(number);
-        console.log("test:966 findModule - ", course_tn);
+        //console.log("test:966 findModule - ", course_tn);
 
         const records = await course_base(course_tn).select({
             filterByFormula: `({Day} = ${currentDay})`,
@@ -817,7 +817,7 @@ async function findModule(currentDay, module_No, number) {
 
         for (const record of records) {
             const id = await us.getID(number);
-            console.log("test:975 record - ", record);
+            //console.log("test:975 record - ", record);
 
             const day = record.get("Day");
             const module_text = record.get(`Module ${module_No} Text`);
@@ -828,20 +828,20 @@ async function findModule(currentDay, module_No, number) {
             const module_ques = record.get(`Module ${module_No} Question`);
 
             const module_split = module_text ? module_text.split("#") : [];
-            console.log("test: 983 - Executing FindModule - module_split ", module_split);
+            //console.log("test: 983 - Executing FindModule - module_split ", module_split);
 
             if (!module_text && module_ques) {
-                console.log("Ques not empty - Module Text Empty");
+                //console.log("Ques not empty - Module Text Empty");
 
                 setTimeout(() => {
-                    console.log("test:989 - 4. Delay of media in Ques not empty - Module Text Empty");
+                    //console.log("test:989 - 4. Delay of media in Ques not empty - Module Text Empty");
                     sendContent.sendMediaFile(day, module_No, number);
                 }, 100);
 
                 await sendQues(currentDay, module_No, number);
 
             } else if (interactive_body && module_text) {
-                console.log("test:996 - 1. Module Split- data - ", module_text);
+                //console.log("test:996 - 1. Module Split- data - ", module_text);
                 await sendSplitMessages(module_split, 0, day, module_No, number);
 
                 if (module_link) {
@@ -854,20 +854,20 @@ async function findModule(currentDay, module_No, number) {
                 await sendIMsg(currentDay, module_No, number);
 
             } else if (module_title && !module_text) {
-                console.log("test:1009 - module_title && !module_text");
+                //console.log("test:1009 - module_title && !module_text");
                 await sendList(currentDay, module_No, number);
 
             } else if (interactive_body && !module_text) {
-                console.log("test:1013 - Delay of media in not empty link - interactive not empty");
+                //console.log("test:1013 - Delay of media in not empty link - interactive not empty");
                 sendContent.sendMediaFile(day, module_No, number);
                 await sendIMsg(currentDay, module_No, number);
 
             } else if (module_text && !module_title) {
-                console.log("test:1018 - module_text && !module_title");
+                //console.log("test:1018 - module_text && !module_title");
 
                 if (interactive_body) {
                     setTimeout(() => {
-                        console.log("test:1022 - 2. Delay of media in not empty link ");
+                        //console.log("test:1022 - 2. Delay of media in not empty link ");
                         sendContent.sendMediaFile(day, module_No, number);
                     }, 10000);
 
@@ -879,14 +879,14 @@ async function findModule(currentDay, module_No, number) {
 
                     await us.updateField(id, "Last_Msg", module_text);
                     setTimeout(() => {
-                        console.log("3. Delay of link ");
+                        //console.log("3. Delay of link ");
                         WA.sendText(module_link, number);
                     }, 2500);
 
                     for (let i = module_No + 1; i <= 7; i++) {
                         const next_module_text = record.get(`Module ${i} Text`);
                         const next_module_list = record.get(`Module ${i} LTitle`);
-                        console.log("4. After ", i, "module_text ", next_module_text);
+                        //console.log("4. After ", i, "module_text ", next_module_text);
 
                         if (!next_module_text && !next_module_list) {
                             if (i >= 5) {
@@ -894,7 +894,7 @@ async function findModule(currentDay, module_No, number) {
                             }
                         } else {
                             setTimeout(() => {
-                                console.log("2. Delay of Finish Interactive Button - Module");
+                                //console.log("2. Delay of Finish Interactive Button - Module");
                                 WA.sendInteractiveButtonsMessage("Let's move on!", "Click Next", "Yes, Next", number);
                             }, 1000);
                             break;
@@ -925,7 +925,7 @@ async function findModule(currentDay, module_No, number) {
                             for (let i = module_No + 1; i <= 9; i++) {
                                 let next_module_text = record.get(`Module ${i} Text`);
                                 let next_module_list = record.get(`Module ${i} LTitle`);
-                                console.log("test:1081 - 5. After ", i);
+                                //console.log("test:1081 - 5. After ", i);
 
                                 if (!next_module_text && !next_module_list) {
                                     if (i >= 7) {
@@ -933,7 +933,7 @@ async function findModule(currentDay, module_No, number) {
                                     }
                                 } else {
                                     setTimeout(() => {
-                                        console.log("test:1059 - 2. Delay of Finish Interactive Button - FindModule");
+                                        //console.log("test:1059 - 2. Delay of Finish Interactive Button - FindModule");
                                         WA.sendInteractiveButtonsMessage("Let's move on!", "Click Next", "Yes, Next", number);
                                     }, 1000);
                                     break;
@@ -962,26 +962,26 @@ async function findModule(currentDay, module_No, number) {
 async function sendSplitMessages(module_split, startIndex, day, module_No, number) {
     const awaitTimeout = delay => new Promise(resolve => setTimeout(resolve, delay));
 
-    console.log("test:1391 - module_split --", module_split, "\n", "module_len - ", module_split.length);
+    //console.log("test:1391 - module_split --", module_split, "\n", "module_len - ", module_split.length);
 
     for (let i = startIndex; i < module_split.length; i++) {
         try {
-            console.log("test: 1125 - 4. module split ", i);
+            //console.log("test: 1125 - 4. module split ", i);
 
             if (i == 0) {
                 // Send the first message without delay
                 await WA.sendText(module_split[i], number);
             } else {
                 if (module_split[i].includes("Image")) {
-                    console.log("4.2 Delay of sendMediaFile Split");
+                    //console.log("4.2 Delay of sendMediaFile Split");
 
                     let image_index = module_split[i].split(" ");
-                    console.log("Image Index ", Number(image_index[1]));
+                    //console.log("Image Index ", Number(image_index[1]));
 
                     await awaitTimeout(200);
                     await sendContent.sendMediaFile_v2(Number(image_index[1]), day, module_No, number);
                 } else if (module_split[i].includes("Next Step")) {
-                    console.log("Next step interactive", i);
+                    //console.log("Next step interactive", i);
 
                     await awaitTimeout(400);
                     await WA.sendDynamicInteractiveMsg([{ text: "Next Step" }], "Let's go to the next step. We're ready when you are.", number);
@@ -992,7 +992,7 @@ async function sendSplitMessages(module_split, startIndex, day, module_No, numbe
             }
 
         } catch (e) {
-            console.log("Error sending text ", e);
+            //console.log("Error sending text ", e);
         }
     }
 }
@@ -1014,17 +1014,17 @@ async function sendModuleContent(number) {
 
             if (next_module !== undefined) {
                 if (cDay == 13) {
-                    console.log("Executing outro sendModuleContent");
+                    //console.log("Executing outro sendModuleContent");
                     await outro.outro_flow(cDay, number); // phone number
                 } else if (next_module === 0) {
-                    console.log("test:1446 - Next module 0", next_module);
+                    //console.log("test:1446 - Next module 0", next_module);
                     await findDay(cDay, number);
                 } else {
                     if (completed_module === 0 && next_module === 1) {
-                        console.log(`test:1450 - Starting Day ${cDay} for number ${number}`);
+                        //console.log(`test:1450 - Starting Day ${cDay} for number ${number}`);
                         await sendStartDayTopic(next_module, cDay, number);
                     } else {
-                        console.log("Next module No", next_module);
+                        //console.log("Next module No", next_module);
                         await findModule(cDay, next_module, number);
                     }
                 }
@@ -1039,7 +1039,7 @@ async function sendModuleContent(number) {
 async function sendStartDayTopic(next_module, cDay, number) {
     try {
         const course_tn = await us.findTable(number);
-        console.log("course sendStartDayTopic", course_tn);
+        //console.log("course sendStartDayTopic", course_tn);
 
         const id = await us.getID(number);
         if (!id) {
@@ -1054,11 +1054,11 @@ async function sendStartDayTopic(next_module, cDay, number) {
 
         for (const record of records) {
             const day_topic = record.get("Day Topic");
-            console.log("test : 1180 - ", day_topic);
+            //console.log("test : 1180 - ", day_topic);
 
             if (day_topic) {
                 const [hTxt, bTxt] = day_topic.split("--");
-                console.log("test: 1184 - 0. Updating start day");
+                //console.log("test: 1184 - 0. Updating start day");
 
                 await WA.sendInteractiveButtonsMessage(hTxt, bTxt, `Let's Begin`, number);
                 await us.updateField(id, "Last_Msg", "Let's Begin");
@@ -1085,15 +1085,15 @@ async function markModuleComplete(number) {
         const cDay = Number(record.get('Next Day'));
   
         const next_module = current_module + 1;
-        console.log(`test:1211 - Entered markModuleComplete: Next Module ${next_module}, Current Module ${current_module}`);
+        //console.log(`test:1211 - Entered markModuleComplete: Next Module ${next_module}, Current Module ${current_module}`);
   
         if (next_module >= 9) {
-          console.log('Updating Module Completed and Next Module');
+          //console.log('Updating Module Completed and Next Module');
           await us.updateField(id, 'Module Completed', current_module);
           await us.updateField(id, 'Next Module', 0);
           findDay(cDay, number);
         } else {
-          console.log('Updating Next Module and Module Completed');
+          //console.log('Updating Next Module and Module Completed');
           await us.updateField(id, 'Next Module', next_module);
           await us.updateField(id, 'Module Completed', current_module);
           findModule(cDay, next_module, number);
@@ -1114,7 +1114,7 @@ async function markModuleComplete_v2(c_m, number) {
     records_Student.forEach(async function (record) {
         let id = record.id
         let current_module = c_m //1 
-        console.log("Entered markModuleComplete v2 ", c_m, current_module)
+        //console.log("Entered markModuleComplete v2 ", c_m, current_module)
 
         // let completed_mNo = Number(record.get("Module Completed"))//0
         let cDay = Number(record.get("Next Day"))
@@ -1122,9 +1122,9 @@ async function markModuleComplete_v2(c_m, number) {
         let next_module = current_module + 1 // 1+1 = 1
 
         if (next_module >= 4) {
-            console.log("Module ", next_module)
+            //console.log("Module ", next_module)
             if (c_m == 9) {
-                console.log("Updating 1.1 ", next_module, current_module)
+                //console.log("Updating 1.1 ", next_module, current_module)
 
                 us.updateField(id, "Module Completed", current_module)
 
@@ -1132,7 +1132,7 @@ async function markModuleComplete_v2(c_m, number) {
                 findDay(cDay, number);
             }
             else {
-                console.log("Updating 1.2 ", next_module, current_module)
+                //console.log("Updating 1.2 ", next_module, current_module)
 
                 us.updateField(id, "Module Completed", current_module)
 
@@ -1144,7 +1144,7 @@ async function markModuleComplete_v2(c_m, number) {
         }
 
         else {
-            console.log("Updating 2 ", next_module, current_module)
+            //console.log("Updating 2 ", next_module, current_module)
             us.updateField(id, "Next Module", next_module)
             us.updateField(id, "Module Completed", current_module)
 
