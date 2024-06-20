@@ -12,7 +12,7 @@ const Airtable = require('airtable');
 async function find_course_to_create() {
     const config = {
         method: 'GET',
-        url: `https://api.airtable.com/v0/${process.env.alfred_base}/${process.env.alfred_table}?maxRecords=3&sort%5B0%5D%5Bfield%5D=Created&sort%5B0%5D%5Bdirection%5D=asc`,
+        url: `https://api.airtable.com/v0/${process.env.alfred_base}/${process.env.alfred_table}?fields%5B%5D=Phone&fields%5B%5D=Topic&fields%5B%5D=Course+Status&fields%5B%5D=Name&fields%5B%5D=Language&fields%5B%5D=Goal&fields%5B%5D=Style&filterByFormula=OR(%7BCourse+Status%7D+%3D+%22Approved%22%2C%7BCourse+Status%7D+%3D+%22Failed%22+)&sort%5B0%5D%5Bfield%5D=Created&sort%5B0%5D%5Bdirection%5D=asc`,
         headers: {
             'Authorization': `Bearer ${process.env.personal_access_token}`,
             'Content-Type': 'application/json',

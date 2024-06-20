@@ -41,6 +41,9 @@ webApp.post('/cop', async (req, res) => {
   
           if (course !== "Web 3" && course !== "Entrepreneurship" && course !== "Financial Literacy") {
             if (keyword === "Start Day") {
+              if (recordExist != 0) {
+                mongodb.updateStatus(senderID, "Closed")
+              }
               await test.sendModuleContent(senderID);
             } else if (["Yes, Next", "Start now", "Next.", "Next Step", "Step by step"].includes(keyword)) {
               await test.markModuleComplete(senderID);
@@ -84,8 +87,9 @@ webApp.post('/cop', async (req, res) => {
       console.error("Error:", error);
       return res.status(500).send("Error");
     }
-  });
-  
+});
+
+
 webApp.get("/ping", async (req, res) => {
     //console.log("Pinging whatsapp server")
     course_approval.course_approval()
