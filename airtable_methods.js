@@ -489,7 +489,7 @@ async function find_student_record(senderID) {
     try {
       const config = {
         method: 'GET',
-        url: `https://api.airtable.com/v0/${process.env.student_base}/Student?fields%5B%5D=Phone&filterByFormula=Phone%3D${senderID}`,
+        url: `https://api.airtable.com/v0/${process.env.student_base}/Student?fields%5B%5D=Phone&filterByFormula=AND({Phone}="${senderID}", NOT({Progress}="Completed"))`,
         headers: {
           'Authorization': `Bearer ${process.env.personal_access_token}`,
           'Content-Type': 'application/json',
